@@ -1,0 +1,19 @@
+Gradient Enhanced reMap ==> GEM
+
+Try to Enhance Remap netCDF file through Gradients
+./gem -r remapfile -m gradient-algorithm -o enchenced-remapfile
+
+More Design Goals:
+1. IO_netCDF:
+    support templates: simplify netCDF IO code work
+
+2. SparseMatrix:
+    support matrix-vector multiplication
+    support matrix-matrix addition / substraction
+    support parallel operation
+
+3. gradient:
+    support multiple gradient calculation methods
+
+4. innovation:
+    seperate remap algorithm and gradient algorithm: suit for all remap platform
