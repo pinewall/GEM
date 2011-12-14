@@ -42,6 +42,6 @@ class grad_latlon
         SparseMatrix * Get_grad_lon_matrix ();
 
         void Test_grad_latlon (double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double));
+        void Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon);
 };
-
 #endif

@@ -22,9 +22,13 @@ class SparseMatrix
         SparseMatrix (int _row_dim, int _col_dim, int * _row_ptr, int * _col_list, double * _value_list);
         SparseMatrix (SparseMatrix * copyer);
         ~SparseMatrix ();
+
+        int Get_row_dim ()  {   return row_dim; }
+        int Get_col_dim ()  {   return col_dim; }
         void Add_entry (int row, int col, double value);
         void Complete_row_ptr ();
         void Resize ();
+        void Trim ();
         SparseMatrix * Matrix_transpose ();
         SparseMatrix * Matrix_add (SparseMatrix * adder);
         SparseMatrix * Matrix_substract (SparseMatrix * suber);
