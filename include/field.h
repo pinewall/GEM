@@ -1,6 +1,7 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+#define SCRIP
 const double FIELD_PI = 3.14159265359;
 
 double function_coslat_coslon (double lat, double lon);

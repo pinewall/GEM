@@ -34,7 +34,7 @@ class SparseMatrix
         SparseMatrix * Matrix_substract (SparseMatrix * suber);
         SparseMatrix * Matrix_multiple (SparseMatrix * multier);
         // matrix vector multiplication
-        void Matrix_vector_multiple (double * output, double * input, int size);
+        void Matrix_vector_multiple (double * output, int osize, double * input, int isize);
         void print();
 };
 

@@ -34,6 +34,7 @@ double partial_lon_function_unit (double lat, double lon)
 }
 
 // function y = cos(sqrt((lon - pi)^2 + lat^2))
+#ifndef SCRIP
 double function_cosbell (double lat, double lon)
 {
     return 2 + cos (sqrt ((lon - FIELD_PI) * (lon - FIELD_PI) + lat * lat));
@@ -54,3 +55,46 @@ double partial_lon_function_cosbell (double lat, double lon)
         return 0.0;
     return sin (sqr) * (lon - FIELD_PI) / sqr / cos(lat);
 }
+#endif
+#ifdef SCRIP
+// test functions defined in SCRIP (scrip_test.f)
+double function_cosbell (double lat, double lon)
+{
+    double result;
+    double length = 0.1 * FIELD_PI * 2;
+    result = cos (lat) * cos (lon);
+    double tmp = acos (-result) / length;
+    if (tmp <= 1.0)
+        result = 2.0 + cos (tmp * FIELD_PI);
+    else
+        result = 1.0;
+    return result;
+}
+
+double partial_lat_function_cosbell (double lat, double lon)
+{
+    double result;
+    double length = 0.1 * FIELD_PI * 2;
+    result = cos (lat) * cos (lon);
+    double tmp = acos (-result) / length;
+    if (tmp <= 1.0)
+        result = FIELD_PI / length * sin (FIELD_PI * tmp) * sin (lat) * cos (lon) / sqrt (1 - result * result);
+    else
+        result = 0.0;
+    return result;
+}
+
+double partial_lon_function_cosbell (double lat, double lon)
+{
+    double result;
+    double length = 0.1 * FIELD_PI * 2;
+    result = cos (lat) * cos (lon);
+    double tmp = acos (-result) / length;
+    if (tmp <= 1.0)
+        result = FIELD_PI / length * sin (FIELD_PI * tmp) * sin (lon) / sqrt (1 - result * result);
+    else
+        result = 0.0;
+    return result;
+}
+
+#endif

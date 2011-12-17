@@ -300,8 +300,8 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
     }
 
     // use grad matrix to calculate discrete grad
-    partial_lat->Matrix_vector_multiple (discrete_partial_lat, analytic_function, size);
-    partial_lon->Matrix_vector_multiple (discrete_partial_lon, analytic_function, size);
+    partial_lat->Matrix_vector_multiple (discrete_partial_lat, size, analytic_function, size);
+    partial_lon->Matrix_vector_multiple (discrete_partial_lon, size, analytic_function, size);
 
     printf ("test partial lat\n");
     for (int i = 0; i < size; i ++)
@@ -318,7 +318,8 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
 // note: temp use; we will export final matrix to files
 void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon)
 {
-    printf ("Test_final_results\n");
+    //printf ("Test_final_results\n");
+    printf ("Analytic\t\tOrder1\t\tOrder2_analytic\t\tOrder2_discrete\n");
     int size = lat_dim * lon_dim;
     int src_dim = m1->Get_col_dim ();
     int dst_dim = m1->Get_row_dim ();
@@ -368,15 +369,15 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
         results_analytic[i] = function (dst_lat[i], dst_lon[i]);
     }
     // use grad matrix to calculate discrete grad
-    partial_lat->Matrix_vector_multiple (discrete_partial_lat, analytic_function, src_dim);
-    partial_lon->Matrix_vector_multiple (discrete_partial_lon, analytic_function, src_dim);
+    partial_lat->Matrix_vector_multiple (discrete_partial_lat, src_dim, analytic_function, src_dim);
+    partial_lon->Matrix_vector_multiple (discrete_partial_lon, src_dim, analytic_function, src_dim);
 
     // use remap matrix to calculate field value
-    m1->Matrix_vector_multiple (results_order1, analytic_function, src_dim);
-    m2lat->Matrix_vector_multiple (results_order2_analytic_lat, analytic_partial_lat, src_dim);
-    m2lon->Matrix_vector_multiple (results_order2_analytic_lon, analytic_partial_lon, src_dim);
-    m2lat->Matrix_vector_multiple (results_order2_discrete_lat, discrete_partial_lat, src_dim);
-    m2lon->Matrix_vector_multiple (results_order2_discrete_lon, discrete_partial_lon, src_dim);
+    m1->Matrix_vector_multiple (results_order1, dst_dim, analytic_function, src_dim);
+    m2lat->Matrix_vector_multiple (results_order2_analytic_lat, dst_dim, analytic_partial_lat, src_dim);
+    m2lon->Matrix_vector_multiple (results_order2_analytic_lon, dst_dim, analytic_partial_lon, src_dim);
+    m2lat->Matrix_vector_multiple (results_order2_discrete_lat, dst_dim, discrete_partial_lat, src_dim);
+    m2lon->Matrix_vector_multiple (results_order2_discrete_lon, dst_dim, discrete_partial_lon, src_dim);
 
     for (int i = 0; i < dst_dim; i ++)
     {

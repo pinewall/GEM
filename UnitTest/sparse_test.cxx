@@ -43,7 +43,7 @@ int main()
     double real[] = {10.0, 13.0, 11.0, 4.0, 4.0, 19.0, 1.0};
     for (int i = 0; i < 7; i ++)
         vec[i] = 1;
-    test->Matrix_vector_multiple (res, vec, 7);
+    test->Matrix_vector_multiple (res, 7, vec, 7);
     for (int i = 0; i < 7; i ++)
         printf ("res[%d] = %f\t%f\n", i, res[i], real[i]);
     return 0;

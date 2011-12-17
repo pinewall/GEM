@@ -35,8 +35,8 @@ IO_netCDF::IO_netCDF (char * config_filename)
 
     int dim_array[2];
 
-    printf ("INT: %d\n", INT);
-    printf ("DOUBLE: %d\n", DOUBLE);
+    //printf ("INT: %d\n", INT);
+    //printf ("DOUBLE: %d\n", DOUBLE);
     dim_array[0] = 4;
     this->Add_new_var (new _Var (0, "src_grid_dims", 1, dim_array, INT));
 

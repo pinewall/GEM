@@ -13,7 +13,7 @@ SparseMatrix::SparseMatrix (int _row_dim, int _col_dim)
     alpha = 0.0001;               // type is double; note the declaration in header file
     increase = alpha * (row_dim * col_dim);
     increase = (increase > 4) ? (increase - increase % 4) : 4;
-    printf ("SparseMatrix::increase = %d\n", increase);
+    //printf ("SparseMatrix::increase = %d\n", increase);
     assert (increase > 0);
     buffer_size = increase;
     current_size = 0;
@@ -34,7 +34,7 @@ SparseMatrix::SparseMatrix (int _row_dim, int _col_dim, int _current_size, int *
     alpha = 0.0001;               // type is double; note the declaration in header file
     increase = alpha * (row_dim * col_dim);
     increase = (increase > 4) ? (increase - increase % 4) : 4;
-    printf ("SparseMatrix::increase = %d\n", increase);
+    //printf ("SparseMatrix::increase = %d\n", increase);
     assert (increase > 0);
 
     current_size = _current_size;
@@ -251,17 +251,18 @@ SparseMatrix * SparseMatrix::Matrix_substract (SparseMatrix * suber)
 SparseMatrix * SparseMatrix::Matrix_multiple (SparseMatrix * multier)
 {
     // TODO
-    printf ("Matrix_multiple\n");
+    //printf ("Matrix_multiple\n");
     assert (col_dim == multier->row_dim);
     return (SparseMatrix *) 0;
 }
 
 
 // matrix vector multiplication
-void SparseMatrix::Matrix_vector_multiple (double * output, double * input, int size)
+void SparseMatrix::Matrix_vector_multiple (double * output, int osize, double * input, int isize)
 {
-    printf ("Matrix_vector_multiple\n");
-    assert (col_dim == size);
+    //printf ("Matrix_vector_multiple\n");
+    assert (col_dim == isize);
+    assert (row_dim == osize);
     for (int i = 0; i < col_dim; i ++)
         output[i] = 0.0;
     for (int i = 0; i < row_dim; i ++)

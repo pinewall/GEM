@@ -17,3 +17,12 @@ More Design Goals:
 
 4. innovation:
     seperate remap algorithm and gradient algorithm: suit for all remap platform
+
+===========How To Use==========
+currently put test.nc file in root dir
+run make lib
+run make unit_test
+./unit_test > script/value
+cd script
+ncl remap_compare.ncl
+
