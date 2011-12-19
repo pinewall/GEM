@@ -7,10 +7,35 @@
 
 const int NETCDF_STRLEN = 128;
 const int NETCDF_DIMLEN = 2;
+const int NETCDF_ATTLEN = 1;
 
 typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
 typedef enum {INT, DOUBLE} Data_Type;
+
+struct _Prep
+{
+    char        name[NETCDF_STRLEN];
+    char        info[NETCDF_STRLEN];
+    _Prep (char * _name)
+    {
+        strcpy (name, _name);
+        strcpy (info, "null");
+    }
+
+    _Prep (char * _name, char * _info)
+    {
+        strcpy (name, _name);
+        strcpy (info, _info);
+    }
+
+    _Prep (_Prep * pprep)
+    {
+        strcpy (name, pprep->name);
+        strcpy (info, pprep->info);
+    }
+};
+typedef _Prep * Prep;
 
 struct _Dim
 {
@@ -46,12 +71,15 @@ struct _Var
     char        name[NETCDF_STRLEN];
     int         dim_size;
     int         dim_list[NETCDF_DIMLEN];
+    int         prep_size;
+    Prep        prep_list[NETCDF_ATTLEN];
     Data_Type   type;
+    Prep        prep;
     void *      data;
     Action      action;
     State       state;
 
-    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, Data_Type _type) : ID(_ID), dim_size(_dim_size), type(_type), action(KEEP), state(DONE) {
+    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, Data_Type _type) : ID(_ID), dim_size(_dim_size), prep_size(0), type(_type), action(KEEP), state(DONE) {
         strcpy (name, _name);
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = _dim_list[i];
@@ -59,10 +87,38 @@ struct _Var
         data = (void *) 0;
     }
 
-    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, Data_Type _type, Action _action, State _state) : ID(_ID), dim_size(_dim_size), type(_type), action(_action), state(_state) {
+    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, int _prep_size, Prep * _prep_list, Data_Type _type) : ID(_ID), dim_size(_dim_size), prep_size(_prep_size), type(_type), action(KEEP), state(DONE) {
         strcpy (name, _name);
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = _dim_list[i];
+        for (int i = 0; i < prep_size; i ++)
+        {
+            prep_list[i] = new _Prep ("null", "null");
+            strcpy (prep_list[i]->name, _prep_list[i]->name);
+            strcpy (prep_list[i]->info, _prep_list[i]->info);
+        }
+        //data = NULL;
+        data = (void *) 0;
+    }
+
+    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, Data_Type _type, Action _action, State _state) : ID(_ID), dim_size(_dim_size), prep_size(0), type(_type), action(_action), state(_state) {
+        strcpy (name, _name);
+        for (int i = 0; i < dim_size; i ++)
+            dim_list[i] = _dim_list[i];
+        //data = NULL;
+        data = (void *) 0;
+    }
+
+    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, int _prep_size, Prep * _prep_list, Data_Type _type, Action _action, State _state) : ID(_ID), dim_size(_dim_size), prep_size(_prep_size), type(_type), action(_action), state(_state) {
+        strcpy (name, _name);
+        for (int i = 0; i < dim_size; i ++)
+            dim_list[i] = _dim_list[i];
+        for (int i = 0; i < prep_size; i ++)
+        {
+            prep_list[i] = new _Prep ("null", "null");
+            strcpy (prep_list[i]->name, _prep_list[i]->name);
+            strcpy (prep_list[i]->info, _prep_list[i]->info);
+        }
         //data = NULL;
         data = (void *) 0;
     }
@@ -74,6 +130,14 @@ struct _Var
         dim_size = pvar->dim_size;
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = (pvar->dim_list)[i];
+        prep_size = pvar->prep_size;
+        for (int i = 0; i < prep_size; i ++)
+        {
+            prep_list[i] = new _Prep ("null", "null");
+            strcpy (prep_list[i]->name, pvar->prep_list[i]->name);
+            strcpy (prep_list[i]->info, pvar->prep_list[i]->info);
+        }
+
         //data = NULL;
         data = (void *) 0;
         type = pvar->type;
@@ -90,19 +154,24 @@ class IO_netCDF
     private:
         Dim *   dim_set;
         Var *   var_set;
+        Prep *  global_prep;
         int     dim_set_size;
         int     var_set_size;
+        int     global_prep_size;
         int     current_dim_set_size;       // note1
         int     current_var_set_size;       // note1
+        int     current_global_prep_size;   // note1
     public:
-        IO_netCDF (int _dim_set_size, int _var_set_size);   // note1
+        IO_netCDF (int _dim_set_size, int _var_set_size, int _global_prep_size);   // note1
         IO_netCDF (char * config_filename);
         ~IO_netCDF ();
 
         void Add_new_dim (Dim _dim);        // note1
         void Add_new_var (Var _var);        // note1
+        void Add_new_global_prep (Prep _prep);
         void Print_dims ();
         void Print_vars ();
+        void Print_global_preps ();
         void Read_file (char * netcdf_file);        // to load data part of Dim and Var
         Dim Get_dim_by_name (const char * dim_name);
         Var Get_var_by_name (const char * var_name);
@@ -114,6 +183,7 @@ class IO_netCDF
         void Modify_dim_data (int dim_id, unsigned int new_data);    // note2
         void Modify_var_name (int var_id, char * new_name);
         void Modify_var_data (int var_id, void * new_data);
+        void Modify_var_prep (int var_id, char * prep_name, char * new_prep_info);  // used for change units, so new_data is not needed
         void Write_file (char * netcdf_file);       // after modification, write to new netCDF file
         static void Check_NC_Error (int error_id)
         {

@@ -316,7 +316,7 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
     delete [] discrete_partial_lon;
 }
 // note: temp use; we will export final matrix to files
-void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon)
+void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon, int * dst_mask)
 {
     //printf ("Test_final_results\n");
     printf ("Analytic\t\tOrder1\t\tOrder2_analytic\t\tOrder2_discrete\n");
@@ -336,10 +336,13 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     double * discrete_partial_lon = new double [src_dim];
     double * results_analytic = new double [dst_dim];
     double * results_order1 = new double [dst_dim];
+    double * results_order1_rerrors = new double [dst_dim];
     double * results_order2_analytic = new double [dst_dim];
+    double * results_order2_analytic_rerrors = new double [dst_dim];
     double * results_order2_analytic_lat = new double [dst_dim];
     double * results_order2_analytic_lon = new double [dst_dim];
     double * results_order2_discrete = new double [dst_dim];
+    double * results_order2_discrete_rerrors = new double [dst_dim];
     double * results_order2_discrete_lat = new double [dst_dim];
     double * results_order2_discrete_lon = new double [dst_dim];
 
@@ -350,10 +353,13 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     assert (discrete_partial_lon != (double *) 0);
     assert (results_analytic != (double *) 0);
     assert (results_order1 != (double *) 0);
+    assert (results_order1_rerrors != (double *) 0);
     assert (results_order2_analytic != (double *) 0);
+    assert (results_order2_analytic_rerrors != (double *) 0);
     assert (results_order2_analytic_lat != (double *) 0);
     assert (results_order2_analytic_lon != (double *) 0);
     assert (results_order2_discrete != (double *) 0);
+    assert (results_order2_discrete_rerrors != (double *) 0);
     assert (results_order2_discrete_lat != (double *) 0);
     assert (results_order2_discrete_lon != (double *) 0);
     
@@ -381,9 +387,47 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
 
     for (int i = 0; i < dst_dim; i ++)
     {
+        if (dst_mask[i] == 0)
+        {
+            results_analytic[i] = 0.0;
+            results_order1[i] = 0.0;
+            results_order2_analytic_lat[i] = 0.0;
+            results_order2_analytic_lon[i] = 0.0;
+            results_order2_discrete_lat[i] = 0.0;
+            results_order2_discrete_lon[i] = 0.0;
+        }
+    }
+    for (int i = 0; i < dst_dim; i ++)
+    {
         results_order2_analytic[i] = results_order1[i] + results_order2_analytic_lat[i] + results_order2_analytic_lon[i];
         results_order2_discrete[i] = results_order1[i] + results_order2_discrete_lat[i] + results_order2_discrete_lon[i];
-        printf ("%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t\t%5.8f\n", results_analytic[i], results_order1[i], results_order2_analytic[i], results_order2_discrete[i]);
+        results_order1_rerrors[i] = results_order1[i] - results_analytic[i];
+        results_order2_analytic_rerrors[i] = results_order2_analytic[i] - results_analytic[i];
+        results_order2_discrete_rerrors[i] = results_order2_discrete[i] - results_analytic[i];
+        if (results_analytic[i] > 1e-30)
+        {
+            results_order1_rerrors[i] /= results_analytic[i];
+            results_order2_analytic_rerrors[i] /= results_analytic[i];
+            results_order2_discrete_rerrors[i] /= results_analytic[i];
+        }
+        else
+        {
+            if (results_order1_rerrors[i] > 1e-30)
+                results_order1_rerrors[i] = 1.0;
+            else
+                results_order1_rerrors[i] = 0.0;
+
+            if (results_order2_analytic_rerrors[i] > 1e-30)
+                results_order2_analytic_rerrors[i] = 1.0;
+            else
+                results_order2_analytic_rerrors[i] = 0.0;
+
+            if (results_order2_discrete_rerrors[i] > 1e-30)
+                results_order2_discrete_rerrors[i] = 1.0;
+            else
+                results_order2_discrete_rerrors[i] = 0.0;
+        }
+        printf ("%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t%5.8f\t\t%5.8f\t\t%5.8f\n", results_analytic[i], results_order1[i], results_order2_analytic[i], results_order2_discrete[i], results_order1_rerrors[i], results_order2_analytic_rerrors[i], results_order2_discrete_rerrors[i]);
     }
     //return;
     delete [] analytic_function;
@@ -392,10 +436,13 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     delete [] discrete_partial_lat;
     delete [] discrete_partial_lon;
     delete [] results_order1;
+    delete [] results_order1_rerrors;
     delete [] results_order2_analytic;
+    delete [] results_order2_analytic_rerrors;
     delete [] results_order2_analytic_lat;
     delete [] results_order2_analytic_lon;
     delete [] results_order2_discrete;
+    delete [] results_order2_discrete_rerrors;
     delete [] results_order2_discrete_lat;
     delete [] results_order2_discrete_lon;
 }

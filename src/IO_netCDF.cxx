@@ -4,14 +4,17 @@
 
 #define NC_CHECK(error_id) {IO_netCDF::Check_NC_Error(error_id);}
 
-IO_netCDF::IO_netCDF (int _dim_set_size, int _var_set_size)
+IO_netCDF::IO_netCDF (int _dim_set_size, int _var_set_size, int _global_prep_size)
 {
     dim_set_size = _dim_set_size;
     var_set_size = _var_set_size;
+    global_prep_size = _global_prep_size;
     current_dim_set_size = 0;
     current_var_set_size = 0;
+    current_global_prep_size = 0;
     dim_set = new Dim [dim_set_size];
     var_set = new Var [dim_set_size];
+    global_prep = new Prep [global_prep_size];
 }
 
 IO_netCDF::IO_netCDF (char * config_filename)
@@ -20,10 +23,13 @@ IO_netCDF::IO_netCDF (char * config_filename)
     //IO_netCDF * cdf = new IO_netCDF (8, 19);
     dim_set_size = 8;
     var_set_size = 19;
+    global_prep_size = 7;
     current_dim_set_size = 0;
     current_var_set_size = 0;
+    current_global_prep_size = 0;
     dim_set = new Dim [dim_set_size];
-    var_set = new Var [dim_set_size];
+    var_set = new Var [var_set_size];
+    global_prep = new Prep [global_prep_size];
     this->Add_new_dim (new _Dim (0, "src_grid_size"));
     this->Add_new_dim (new _Dim (1, "dst_grid_size"));
     this->Add_new_dim (new _Dim (2, "src_grid_corners"));
@@ -37,6 +43,7 @@ IO_netCDF::IO_netCDF (char * config_filename)
 
     //printf ("INT: %d\n", INT);
     //printf ("DOUBLE: %d\n", DOUBLE);
+    Prep prep_units = new _Prep ("units");
     dim_array[0] = 4;
     this->Add_new_var (new _Var (0, "src_grid_dims", 1, dim_array, INT));
 
@@ -44,46 +51,46 @@ IO_netCDF::IO_netCDF (char * config_filename)
     this->Add_new_var (new _Var (1, "dst_grid_dims", 1, dim_array, INT));
 
     dim_array[0] = 0;
-    this->Add_new_var (new _Var (2, "src_grid_center_lat", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (2, "src_grid_center_lat", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 1;
-    this->Add_new_var (new _Var (3, "dst_grid_center_lat", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (3, "dst_grid_center_lat", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 0;
-    this->Add_new_var (new _Var (4, "src_grid_center_lon", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (4, "src_grid_center_lon", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 1;
-    this->Add_new_var (new _Var (5, "dst_grid_center_lon", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (5, "dst_grid_center_lon", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 0; dim_array[1] = 2;
-    this->Add_new_var (new _Var (6, "src_grid_corner_lat", 2, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (6, "src_grid_corner_lat", 2, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 1; dim_array[1] = 3;
-    this->Add_new_var (new _Var (7, "dst_grid_corner_lat", 2, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (7, "dst_grid_corner_lat", 2, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 0; dim_array[1] = 2;
-    this->Add_new_var (new _Var (8, "src_grid_corner_lon", 2, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (8, "src_grid_corner_lon", 2, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 1; dim_array[1] = 3;
-    this->Add_new_var (new _Var (9, "dst_grid_corner_lon", 2, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (9, "dst_grid_corner_lon", 2, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 0;
-    this->Add_new_var (new _Var (10, "src_grid_imask", 1, dim_array, INT));
+    this->Add_new_var (new _Var (10, "src_grid_imask", 1, dim_array, 1, &prep_units, INT));
 
     dim_array[0] = 1;
-    this->Add_new_var (new _Var (11, "dst_grid_imask", 1, dim_array, INT));
+    this->Add_new_var (new _Var (11, "dst_grid_imask", 1, dim_array, 1, &prep_units, INT));
 
     dim_array[0] = 0;
-    this->Add_new_var (new _Var (12, "src_grid_area", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (12, "src_grid_area", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 1;
-    this->Add_new_var (new _Var (13, "dst_grid_area", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (13, "dst_grid_area", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 0;
-    this->Add_new_var (new _Var (14, "src_grid_frac", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (14, "src_grid_frac", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 1;
-    this->Add_new_var (new _Var (15, "dst_grid_frac", 1, dim_array, DOUBLE));
+    this->Add_new_var (new _Var (15, "dst_grid_frac", 1, dim_array, 1, &prep_units, DOUBLE));
 
     dim_array[0] = 6;
     this->Add_new_var (new _Var (16, "src_address", 1, dim_array, INT, CHANGE_DATA, TODO));
@@ -93,6 +100,16 @@ IO_netCDF::IO_netCDF (char * config_filename)
 
     dim_array[0] = 6; dim_array[1] = 7;
     this->Add_new_var (new _Var (18, "remap_matrix", 2, dim_array, DOUBLE, CHANGE_DATA, TODO));
+
+    // add global preps
+    this->Add_new_global_prep (new _Prep ("title"));
+    this->Add_new_global_prep (new _Prep ("normalization"));
+    this->Add_new_global_prep (new _Prep ("map_method"));
+    this->Add_new_global_prep (new _Prep ("history"));
+    this->Add_new_global_prep (new _Prep ("conventions"));
+    this->Add_new_global_prep (new _Prep ("source_grid"));
+    this->Add_new_global_prep (new _Prep ("dest_grid"));
+
     //return cdf;
 }
 
@@ -103,23 +120,31 @@ IO_netCDF::~IO_netCDF ()
         delete dim_set[i];
     for (int i = 0; i < var_set_size; i ++)
         delete var_set[i];
+    for (int i = 0; i < global_prep_size; i ++)
+        delete global_prep[i];
     delete [] dim_set;
     delete [] var_set;
+    delete [] global_prep;
 }
 
 void IO_netCDF::Add_new_dim (Dim dim)
 {
     //printf("%d    %d\n", current_dim_set_size, dim_set_size);
     assert (current_dim_set_size < dim_set_size);
-    dim_set[current_dim_set_size++] = new _Dim(dim);
+    dim_set[current_dim_set_size++] = new _Dim (dim);
 }
 
 void IO_netCDF::Add_new_var (Var var)
 {
     assert (current_var_set_size < var_set_size);
-    var_set[current_var_set_size++] = new _Var(var);
+    var_set[current_var_set_size++] = new _Var (var);
 }
 
+void IO_netCDF::Add_new_global_prep (Prep prep)
+{
+    assert (current_global_prep_size < global_prep_size);
+    global_prep[current_global_prep_size++] = new _Prep (prep);
+}
 void IO_netCDF::Print_dims ()
 {
     Dim dim;
@@ -132,6 +157,7 @@ void IO_netCDF::Print_dims ()
 
 void IO_netCDF::Print_vars ()
 {   
+    Prep prep;
     Var var;
     Dim dim;
     for (int i = 0; i < var_set_size; i ++)
@@ -144,13 +170,31 @@ void IO_netCDF::Print_vars ()
             dim = dim_set[(var->dim_list)[j]];
             printf("\t\tdim %d: \n\t\t\tID: %d\n\t\t\tname: %s\n\t\t\taction: %d\n\t\t\tstate: %d\n", j, dim->ID, dim->name, dim->action, dim->state);
         }
+        printf ("\tprep_list: \n");
+        for (int j = 0; j < var->prep_size; j ++)
+        {
+            prep = var->prep_list[j];
+            printf ("\t\tprep %d: \n\t\t\tname: %s\n\t\t\tinfo: %s\n", j, prep->name, prep->info);
+        }
+
         printf("\ttype: %d\n", var->type);
+    }
+}
+
+void IO_netCDF::Print_global_preps ()
+{
+    Prep prep;
+    for (int i = 0; i < global_prep_size; i ++)
+    {
+        prep = global_prep[i];
+        printf ("Global prep %d: \n\tname: %s\n\tinfo: %s\n", i, prep->name, prep->info);
     }
 }
 
 void IO_netCDF::Read_file (char * netcdf_file)
 {
     // TODO
+    Prep prep;
     Dim dim;
     Var var;
     int ncid, dimid, varid;
@@ -170,6 +214,12 @@ void IO_netCDF::Read_file (char * netcdf_file)
     {
         var = var_set[i];
         NC_CHECK (nc_inq_varid (ncid, var->name, &varid));
+        // get attributes of var
+        for (int j = 0; j < var->prep_size; j ++)
+        {
+            prep = var->prep_list[j];
+            NC_CHECK (nc_get_att_text (ncid, varid, prep->name, prep->info));
+        }
         if (var->data != 0)
             delete var->data;
         if (var->type == INT)
@@ -186,6 +236,13 @@ void IO_netCDF::Read_file (char * netcdf_file)
             var->data = tmp;
             //printf ("ID %d: %3.6f\n", i, ((double *)var->data)[0]);
         }
+    }
+
+    // read all global attributes
+    for (int i = 0; i < global_prep_size; i ++)
+    {
+        prep = global_prep[i];
+        NC_CHECK (nc_get_att_text (ncid, NC_GLOBAL, prep->name, prep->info));
     }
     NC_CHECK (nc_close (ncid));
 }
@@ -294,6 +351,34 @@ void IO_netCDF::Modify_var_data (int var_id, void * new_data)
     var->state = DONE;
     var->action = KEEP;
 }
+
+void IO_netCDF::Modify_var_prep (int var_id, char * prep_name, char * new_prep_info)
+{
+    Var var = var_set[var_id];
+    int var_all_dims = Calculate_all_dims_of_var (var_id);
+    assert (var->type == DOUBLE);
+    assert (strcmp (var->prep_list[0]->name, prep_name) == 0);
+    assert (strcmp (prep_name, "units") == 0);
+
+    double * data = (double *) var->data;
+    double rate = 1.0;
+    if (strcmp (var->prep_list[0]->info, "degrees") == 0)
+    {
+        if (strcmp (new_prep_info, "radians") == 0)
+            rate = 3.14159265359 / 180;
+    }
+    else if (strcmp (var->prep_list[0]->info, "radians") == 0)
+    {
+        if (strcmp (new_prep_info, "degrees") == 0)
+            rate = 180 / 3.14159265359;
+    }
+    for (int i = 0; i < var_all_dims; i ++)
+        data[i] *= rate;
+    // TODO: action and state change
+    var->state = DONE;
+    var->action = KEEP;
+}
+
 void IO_netCDF::Write_file (char * netcdf_file)
 {
     // TODO: to write out all dims or vars whose action == KEEP

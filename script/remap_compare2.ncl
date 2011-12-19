@@ -27,8 +27,9 @@ nlon = dst_dims(0);
 ;print(nlat);
 ;print(nlon);
 
-lat1d = cdf->dst_grid_center_lat;
-lon1d = cdf->dst_grid_center_lon;
+rad2deg = 180 / 3.14159265359;
+lat1d = cdf->dst_grid_center_lat * rad2deg;
+lon1d = cdf->dst_grid_center_lon * rad2deg;
 lat2d = onedtond(lat1d, (/nlat, nlon/));
 lon2d = onedtond(lon1d, (/nlat, nlon/));
 
@@ -53,56 +54,36 @@ o2d_o2a=o2d-o2a;
 
 ; from 1D to 2D
 af2d = onedtond(af, (/nlat, nlon/));
-af2d!0 = "lat";
-af2d!1 = "lon";
-af2d&lat = lats;
-af2d&lon = lons;
-;af2d@lat2d=lat2d;
-;af2d@lon2d=lon2d;
+af2d@lat2d=lat2d;
+af2d@lon2d=lon2d;
 
 o1_af2d = onedtond(o1_af, (/nlat, nlon/));
-o1_af2d!0 = "lat";
-o1_af2d!1 = "lon";
-o1_af2d&lat = lats;
-o1_af2d&lon = lons;
-printVarSummary(o1_af2d);
+o1_af2d@lat2d=lat2d;
+o1_af2d@lon2d=lon2d;
 
 o2a_af2d = onedtond(o2a_af, (/nlat, nlon/));
-o2a_af2d!0 = "lat";
-o2a_af2d!1 = "lon";
-o2a_af2d&lat = lats;
-o2a_af2d&lon = lons;
+o2a_af2d@lat2d=lat2d;
+o2a_af2d@lon2d=lon2d;
 
 o2d_af2d = onedtond(o2d_af, (/nlat, nlon/));
-o2d_af2d!0 = "lat";
-o2d_af2d!1 = "lon";
-o2d_af2d&lat = lats;
-o2d_af2d&lon = lons;
+o2d_af2d@lat2d=lat2d;
+o2d_af2d@lon2d=lon2d;
 
 o2d_o2a2d = onedtond(o2d_o2a, (/nlat, nlon/));
-o2d_o2a2d!0 = "lat";
-o2d_o2a2d!1 = "lon";
-o2d_o2a2d&lat = lats;
-o2d_o2a2d&lon = lons;
-;printVarSummary(af2d);
+o2d_o2a2d@lat2d=lat2d;
+o2d_o2a2d@lon2d=lon2d;
 
 o1_err2d = onedtond(o1_err, (/nlat, nlon/));
-o1_err2d!0 = "lat";
-o1_err2d!1 = "lon";
-o1_err2d&lat = lats;
-o1_err2d&lon = lons;
+o1_err2d@lat2d=lat2d;
+o1_err2d@lon2d=lon2d;
 
 o2a_err2d = onedtond(o2a_err, (/nlat, nlon/));
-o2a_err2d!0 = "lat";
-o2a_err2d!1 = "lon";
-o2a_err2d&lat = lats;
-o2a_err2d&lon = lons;
+o2a_err2d@lat2d=lat2d;
+o2a_err2d@lon2d=lon2d;
 
 o2d_err2d = onedtond(o2d_err, (/nlat, nlon/));
-o2d_err2d!0 = "lat";
-o2d_err2d!1 = "lon";
-o2d_err2d&lat = lats;
-o2d_err2d&lon = lons;
+o2d_err2d@lat2d=lat2d;
+o2d_err2d@lon2d=lon2d;
 
 print("Finish data preparation");
 ; create plot: reference="www.ncl.ucar.edu/Applications/Scripts/proj_1.ncl"
@@ -115,10 +96,19 @@ res@mpGridLatSpacingF   = 30.;
 res@mpGridLonSpacingF   = 30.;
 res@mpFillOn            = False;
 
-res@mpLeftCornerLatF    = lats(0);
-res@mpLeftCornerLonF    = lons(0);
-res@mpRightCornerLatF   = lats(nlat-1);
-res@mpRightCornerLonF   = lons(nlon-1);
+res@mpLimitMode         = "Corners";        choose range of map
+res@mpLeftCornerLatF    = - 90.0;
+res@mpLeftCornerLonF    = - 180.0;
+res@mpRightCornerLatF   =   90.0;
+res@mpRightCornerLonF   =   180.0;
+;res@mpLeftCornerLatF    = lat2d(0,0);
+;res@mpLeftCornerLonF    = lon2d(0,0);
+;res@mpRightCornerLatF   = lat2d(nlat-1, nlon-1);
+;res@mpRightCornerLonF   = lon2d(nlat-1, nlon-1);
+;res@mpLeftCornerLatF    = lats(0);
+;res@mpLeftCornerLonF    = lons(0);
+;res@mpRightCornerLatF   = lats(nlat-1);
+;res@mpRightCornerLonF   = lons(nlon-1);
 
 res@mpRelativeCenterLon = True;
 res@mpCenterLonF        = 0;
@@ -169,17 +159,14 @@ res@tiMainString        = str_concat((/"Order1 remap errors (o1 - af) (", srcnam
 contour = gsn_csm_contour_map(wks2, o1_af2d(:,:), res);
 
 print("Draw graph 3");
-;res@tiMainString        = "Order2 remap errors with analytic gradients (deg2.5_grid ==> deg1_grid)";
 res@tiMainString        = str_concat((/"Order2 remap errors with analytic gradients (o2a - af) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks3, o2a_af2d(:,:), res);
 
 print("Draw graph 4");
-;res@tiMainString        = "Order2 remap errors with discrete gradients (deg2.5_grid ==> deg1_grid)";
 res@tiMainString        = str_concat((/"Order2 remap errors with discrete gradients (o2d - af) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks4, o2d_af2d(:,:), res);
 
 print("Draw graph 5");
-;res@tiMainString        = "Differences of remap results (using analytic and discrete gradients) (deg2.5_grid ==> deg1_grid)";
 res@tiMainString        = str_concat((/"Differences of order2 remap results (o2d - o2a) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks5, o2d_o2a2d(:,:), res);
 

@@ -32,8 +32,10 @@ int main(int argc, char ** argv)
     printf ("%s\n", argv[2]);
 
     IO_netCDF * cdf = new IO_netCDF ("configure");
+    //printf("after configure\n");
     //cdf->Print_dims();
     //cdf->Print_vars();
+    //cdf->Print_global_preps ();
     //IO_netCDF::Check_NC_Error (NC_NOERR);
     //cdf->Read_file ("test.nc");
     cdf->Read_file (argv[1]);
@@ -58,17 +60,38 @@ int main(int argc, char ** argv)
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
+    // default units of center_lat/lon_cvalue is degrees; corresponding to USE_RADIANS
     double * center_lat_value = (double *) center_lat->data;
     double * center_lon_value = (double *) center_lon->data;
-    double * dst_lat_deg = (double *) cdf->Get_var_by_name ("dst_grid_center_lat")->data;
-    double * dst_lon_deg = (double *) cdf->Get_var_by_name ("dst_grid_center_lon")->data;
-    double * dst_lat = new double [dst_grid_size];
-    double * dst_lon = new double [dst_grid_size];
-    double deg2rad = 3.14159265359 / 180;
+    double * center_lat_cvalue = new double [src_grid_size];
+    double * center_lon_cvalue = new double [src_grid_size];
+    double rate = 1.0;
+    if (strcmp (center_lat->prep_list[0]->info, "radians") == 0)
+        rate = 180 / 3.14159265359;
+    for (int i = 0; i < src_grid_size; i ++)
+    {
+        center_lat_cvalue[i] = center_lat_value[i] * rate;
+        center_lon_cvalue[i] = center_lon_value[i] * rate;
+    }
+    // default units of dst_clat/lon is radians; corresponding to USE_RADIANS
+    double * dst_lat = (double *) cdf->Get_var_by_name ("dst_grid_center_lat")->data;
+    double * dst_lon = (double *) cdf->Get_var_by_name ("dst_grid_center_lon")->data;
+    double * dst_clat = new double [dst_grid_size];
+    double * dst_clon = new double [dst_grid_size];
+    int * dst_mask = (int *) cdf->Get_var_by_name ("dst_grid_imask")->data;
+    rate = 1.0;
+#ifdef USE_RADIANS
+    if (strcmp (cdf->Get_var_by_name ("dst_grid_center_lat")->prep_list[0]->info, "degrees") == 0)
+        rate = 3.14159265359 / 180;
+#endif
+#ifdef USE_DEGREES
+    if (strcmp (cdf->Get_var_by_name ("dst_grid_center_lat")->prep_list[0]->info, "radians") == 0)
+        rate = 180 / 3.14159265359;
+#endif
     for (int i = 0; i < dst_grid_size; i ++)
     {
-        dst_lat[i] = dst_lat_deg[i] * deg2rad;
-        dst_lon[i] = dst_lon_deg[i] * deg2rad;
+        dst_clat[i] = dst_lat[i] * rate;
+        dst_clon[i] = dst_lon[i] * rate;
     }
     int * src_address_value = (int *) src_address->data;
     int * dst_address_value = (int *) dst_address->data;
@@ -107,7 +130,7 @@ int main(int argc, char ** argv)
     printf ("\n");
     */
 
-    grad_latlon * grad = new grad_latlon (lat_dim, lon_dim, center_lat_value, center_lon_value);
+    grad_latlon * grad = new grad_latlon (lat_dim, lon_dim, center_lat_cvalue, center_lon_cvalue);
     grad->Calculate_grad_latlon_matrix();
 
     // test gradient method
@@ -144,15 +167,15 @@ int main(int argc, char ** argv)
     delete src_address_cvalue;
     delete dst_address_cvalue;
     if (strcmp (argv[2], "unit") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_lat, dst_lon);
+        grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[2], "coslat_coslon") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon, dst_lat, dst_lon);
+        grad->Test_final_results (m1, m2lat, m2lon, &function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[2], "cosbell") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, dst_lat, dst_lon);
+        grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[2], "Y2_2") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_lat, dst_lon);
+        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[2], "Y16_32") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, dst_lat, dst_lon);
+        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, dst_clat, dst_clon, dst_mask);
     else
         printf ("Un-supported test function!\nUse the following ones:\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
     delete dst_lat;

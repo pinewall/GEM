@@ -34,6 +34,6 @@ sparse_test: SParseMatrix.o sparse_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 
 clean:
-	rm -f $(MODPATH)/*.o unit_test toy_test sparse_test *.nc
+	rm -f $(MODPATH)/*.o unit_test toy_test sparse_test
 distclean:
-	rm -rf $(MODPATH) *.nc unit_test toy_test sparse_test
+	rm -rf $(MODPATH) unit_test toy_test sparse_test
