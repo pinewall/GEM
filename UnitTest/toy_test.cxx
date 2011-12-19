@@ -17,5 +17,8 @@ int main(int argc, char ** argv)
     list[0] = 128;
     list[1] = -55;
     printf ("double of two int (%d, %d) is %f\n", list[0], list[1], ((double *)list)[0]);
+
+    for (int i = 0; i < argc; i ++)
+        printf ("argv[%d] = %s\n", i, argv[i]);
     return 0;
 }

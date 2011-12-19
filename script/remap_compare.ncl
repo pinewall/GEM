@@ -4,10 +4,22 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
    
 begin
 
-values = readAsciiTable("value", 4, "float", (/1, 0/))  ;   values on grid
+header = readAsciiHead("value", 3);                         src/dst grid and test function information
+srcname = header(0);
+dstname = header(1);
+testfunction = header(2);
+ncfile = str_concat((/srcname, "_to_", dstname, ".nc"/));
+print(srcname);
+print(dstname);
+print(testfunction);
+print(ncfile);
+;srcname="Gamil128x60_grid";
+;dstname="T42_grid";
+
+values = readAsciiTable("value", 4, "float", (/4, 0/))  ;   values on grid
 ;printVarSummary(values)
 
-cdf = addfile("../test.nc", "r")                        ;   open netCDF file for lat/lon information
+cdf = addfile(ncfile, "r")                        ;   open netCDF file for lat/lon information
 dst_dims = cdf->dst_grid_dims;
 ;printVarSummary(dims)
 nlat = dst_dims(1);
@@ -93,6 +105,7 @@ res@mpCenterLatF        = 0;
 res@tfDoNDCOverlay      = False;
 res@cnFillOn            = True;
 ;res@cnLineLabelOn       = False;
+res@cnLinesOn           = False;
 res@txFontHeightF       = 0.015;
 
 res@vpXF                = 0.1;
@@ -103,36 +116,44 @@ res@vpHeightF           = 0.9;
 res@gsnSpreadColors     = True;
 res@gsnSpreadColorStart = 2;
 res@gsnSpreadColorEnd   = -3;
-res@lbLabelFontHeightF  = 0.015
+res@lbLabelFontHeightF  = 0.008
+res@lbLabelAngleF       = 45;
 
-res@tiMainString        = "Analytic function";
 res@tiMainFontHeightF   = 0.018
 
-;wks1 = gsn_open_wks("ps", "af");
+wks1 = gsn_open_wks("ps", "af");
 wks2 = gsn_open_wks("ps", "o1_af");
 wks3 = gsn_open_wks("ps", "o2a_af");
 wks4 = gsn_open_wks("ps", "o2d_af");
 wks5 = gsn_open_wks("ps", "o2d_o2a");
 
-;gsn_define_colormap(wks1, "gui_default");
+gsn_define_colormap(wks1, "gui_default");
 gsn_define_colormap(wks2, "gui_default");
 gsn_define_colormap(wks3, "gui_default");
 gsn_define_colormap(wks4, "gui_default");
 gsn_define_colormap(wks5, "gui_default");
 
-;print("Draw graph 1");
-;contour = gsn_csm_contour_map(wks1, af2d(:,:), res);
+print("Draw graph 1");
+res@tiMainString        = str_concat((/"Analytic function of ", testfunction, " (af) (", dstname, ")"/));
+contour = gsn_csm_contour_map(wks1, af2d(:,:), res);
 
 print("Draw graph 2");
+res@tiMainString        = str_concat((/"Order1 remap errors (o1 - af) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks2, o1_af2d(:,:), res);
 
 print("Draw graph 3");
+;res@tiMainString        = "Order2 remap errors with analytic gradients (deg2.5_grid ==> deg1_grid)";
+res@tiMainString        = str_concat((/"Order2 remap errors with analytic gradients (o2a - af) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks3, o2a_af2d(:,:), res);
 
 print("Draw graph 4");
+;res@tiMainString        = "Order2 remap errors with discrete gradients (deg2.5_grid ==> deg1_grid)";
+res@tiMainString        = str_concat((/"Order2 remap errors with discrete gradients (o2d - af) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks4, o2d_af2d(:,:), res);
 
 print("Draw graph 5");
+;res@tiMainString        = "Differences of remap results (using analytic and discrete gradients) (deg2.5_grid ==> deg1_grid)";
+res@tiMainString        = str_concat((/"Differences of order2 remap results (o2d - o2a) (", srcname, " ==> ", dstname, ")"/));
 contour = gsn_csm_contour_map(wks5, o2d_o2a2d(:,:), res);
 
 end

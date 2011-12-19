@@ -19,10 +19,17 @@ More Design Goals:
     seperate remap algorithm and gradient algorithm: suit for all remap platform
 
 ===========How To Use==========
-currently put test.nc file in root dir
 run make lib
 run make unit_test
-./unit_test > script/value
+./unit_test remap_ncfile test_function > script/value
 cd script
-ncl remap_compare.ncl
-
+(local) 
+    ncl remap_compare.ncl
+(server) 
+    ./update remap_ncfile
+    ./update value
+    (ssh to server)
+    ncl remap_compare.ncl
+    ./fetch.sh
+         
+Note: remap_ncfile should be A_B.nc and test_function can be coslat_coslon, cosbell, Y2_2, and Y16_32

@@ -98,3 +98,41 @@ double partial_lon_function_cosbell (double lat, double lon)
 }
 
 #endif
+
+// spherical harmonic l=2, m=2
+double function_spherical_harmonic_2_2 (double lat, double lon)
+{
+    double result = 2.0 + cos (lat) * cos (lat) * cos (2.0 * lon);
+    return result;
+}
+
+double partial_lat_function_spherical_harmonic_2_2 (double lat, double lon)
+{
+    double result = - sin (2.0 * lat) * cos (2.0 * lon);
+    return result;
+}
+
+double partial_lon_function_spherical_harmonic_2_2 (double lat, double lon)
+{
+    double result = - 2.0 * cos (lat) * sin (2.0 * lon);
+    return result;
+}
+
+// spherical harmonic l=16, m=32
+double function_spherical_harmonic_16_32 (double lat, double lon)
+{
+    double result = 2.0 + pow (sin (2.0 * lat), 16) * cos (16.0 * lon);
+    return result;
+}
+
+double partial_lat_function_spherical_harmonic_16_32 (double lat, double lon)
+{
+    double result = 32.0 * pow (sin (2.0 * lat), 15) * cos (2.0 * lat) * cos (16.0 * lon);
+    return result;
+}
+
+double partial_lon_function_spherical_harmonic_16_32 (double lat, double lon)
+{
+    double result = - 32.0 * pow (sin (2.0 * lat), 15) * sin (lat) * sin (16.0 * lon);
+    return result;
+}

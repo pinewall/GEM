@@ -5,11 +5,38 @@
 
 int main(int argc, char ** argv)
 {
+    if (argc < 3)
+    {
+        printf ("Usage: ./unit_test remap_ncfile_path test_function_name\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
+        return -1;
+    }
+    // print header information for NCL
+    int pos1 = 0, pos2 = 0;
+    int len = strlen (argv[1]);
+    char src_grid_name[64];
+    char dst_grid_name[64];
+    strcpy (src_grid_name, argv[1]);
+    for (int i = 0; i < len; i ++)
+    {
+        if (argv[1][i] == '_')
+            pos1 = i;
+        else if (argv[1][i] == '.')
+            pos2 = i;
+    }
+    src_grid_name[pos1] = '\0';
+    strcpy (dst_grid_name, argv[1] + pos1 + 1);
+    dst_grid_name[pos2 - pos1 - 1] = '\0';
+    printf ("%s\n", src_grid_name);
+    printf ("%s\n", dst_grid_name);
+
+    printf ("%s\n", argv[2]);
+
     IO_netCDF * cdf = new IO_netCDF ("configure");
     //cdf->Print_dims();
     //cdf->Print_vars();
     //IO_netCDF::Check_NC_Error (NC_NOERR);
-    cdf->Read_file ("test.nc");
+    //cdf->Read_file ("test.nc");
+    cdf->Read_file (argv[1]);
     //cdf->Write_file ("output.nc");
 
     int src_grid_size = cdf->Get_dim_by_name ("src_grid_size")->data;
@@ -116,9 +143,18 @@ int main(int argc, char ** argv)
     delete w2lon;
     delete src_address_cvalue;
     delete dst_address_cvalue;
-    grad->Test_final_results (m1, m2lat, m2lon, &function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon, dst_lat, dst_lon);
-    //grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_lat, dst_lon);
-    //grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, dst_lat, dst_lon);
+    if (strcmp (argv[2], "unit") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_lat, dst_lon);
+    else if (strcmp (argv[2], "coslat_coslon") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon, dst_lat, dst_lon);
+    else if (strcmp (argv[2], "cosbell") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, dst_lat, dst_lon);
+    else if (strcmp (argv[2], "Y2_2") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_lat, dst_lon);
+    else if (strcmp (argv[2], "Y16_32") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, dst_lat, dst_lon);
+    else
+        printf ("Un-supported test function!\nUse the following ones:\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
     delete dst_lat;
     delete dst_lon;
     return 0;
