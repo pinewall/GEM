@@ -9,12 +9,10 @@ srcname = header(0);
 dstname = header(1);
 testfunction = header(2);
 ncfile = str_concat((/srcname, "_", dstname, ".nc"/));
-print(srcname);
-print(dstname);
-print(testfunction);
-print(ncfile);
-;srcname="Gamil128x60_grid";
-;dstname="T42_grid";
+;print(srcname);
+;print(dstname);
+;print(testfunction);
+;print(ncfile);
 
 values = readAsciiTable("value", 7, "float", (/4, 0/))  ;   values on grid
 ;printVarSummary(values)
@@ -65,7 +63,7 @@ o1_af2d!0 = "lat";
 o1_af2d!1 = "lon";
 o1_af2d&lat = lats;
 o1_af2d&lon = lons;
-printVarSummary(o1_af2d);
+;printVarSummary(o1_af2d);
 
 o2a_af2d = onedtond(o2a_af, (/nlat, nlon/));
 o2a_af2d!0 = "lat";
@@ -142,14 +140,14 @@ res@lbLabelAngleF       = 45;
 
 res@tiMainFontHeightF   = 0.018
 
-wks1 = gsn_open_wks("ps", "af");
-wks2 = gsn_open_wks("ps", "o1_af");
-wks3 = gsn_open_wks("ps", "o2a_af");
-wks4 = gsn_open_wks("ps", "o2d_af");
-wks5 = gsn_open_wks("ps", "o2d_o2a");
-wks6 = gsn_open_wks("ps", "o1_err");
-wks7 = gsn_open_wks("ps", "o2a_err");
-wks8 = gsn_open_wks("ps", "o2d_err");
+wks1 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".af"/)));
+wks2 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_af"/)));
+wks3 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_af"/)));
+wks4 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_af"/)));
+wks5 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_o2a"/)));
+wks6 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_err"/)));
+wks7 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_err"/)));
+wks8 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_err"/)));
 
 gsn_define_colormap(wks1, "gui_default");
 gsn_define_colormap(wks2, "gui_default");
