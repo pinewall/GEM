@@ -140,14 +140,22 @@ res@lbLabelAngleF       = 45;
 
 res@tiMainFontHeightF   = 0.018
 
-wks1 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".af"/)));
-wks2 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_af"/)));
-wks3 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_af"/)));
-wks4 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_af"/)));
-wks5 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_o2a"/)));
-wks6 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_err"/)));
-wks7 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_err"/)));
-wks8 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_err"/)));
+;wks_type = "ps";
+;wks_type@wkOrientation = "landscape";
+;wks_type@wkPaperSize = "A4";
+;wks_type@wkPaperWidthF = 6.0;
+;wks_type@wkPaperHeightF = 9.0;
+wks_type = "png";
+;wks_type@wkWidth = 1000;
+;wks_type@wkHeight = 600;
+wks1 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".af"/)));
+wks2 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_af"/)));
+wks3 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_af"/)));
+wks4 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_af"/)));
+wks5 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_o2a"/)));
+wks6 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_err"/)));
+wks7 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_err"/)));
+wks8 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_err"/)));
 
 gsn_define_colormap(wks1, "gui_default");
 gsn_define_colormap(wks2, "gui_default");

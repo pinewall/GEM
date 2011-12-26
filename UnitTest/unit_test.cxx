@@ -41,22 +41,22 @@ int main(int argc, char ** argv)
     cdf->Read_file (argv[1]);
     //cdf->Write_file ("output.nc");
 
-    int src_grid_size = cdf->Get_dim_by_name ("src_grid_size")->data;
-    int dst_grid_size = cdf->Get_dim_by_name ("dst_grid_size")->data;
-    int num_links = cdf->Get_dim_by_name ("num_links")->data;
+    UINT src_grid_size = cdf->Get_dim_by_gname ("src_size")->data;
+    UINT dst_grid_size = cdf->Get_dim_by_gname ("dst_size")->data;
+    UINT num_links = cdf->Get_dim_by_gname ("num_links")->data;
 
-    Var center_lat = cdf->Get_var_by_name ("src_grid_center_lat");
-    Var center_lon = cdf->Get_var_by_name ("src_grid_center_lon");
-    Var grid_dims = cdf->Get_var_by_name ("src_grid_dims");
-    Var src_address = cdf->Get_var_by_name ("src_address");
-    Var dst_address = cdf->Get_var_by_name ("dst_address");
-    Var remap_matrix = cdf->Get_var_by_name ("remap_matrix");
+    Var center_lat = cdf->Get_var_by_gname ("src_center_lat");
+    Var center_lon = cdf->Get_var_by_gname ("src_center_lon");
+    Var grid_dims = cdf->Get_var_by_gname ("src_dims");
+    Var src_address = cdf->Get_var_by_gname ("src_address");
+    Var dst_address = cdf->Get_var_by_gname ("dst_address");
+    Var remap_matrix = cdf->Get_var_by_gname ("remap_matrix");
     assert (center_lat != (Var) 0);
     assert (center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    int lon_dim = ((int *) grid_dims->data)[0];
-    int lat_dim = ((int *) grid_dims->data)[1];
+    UINT lon_dim = ((UINT *) grid_dims->data)[0];
+    UINT lat_dim = ((UINT *) grid_dims->data)[1];
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
@@ -74,18 +74,18 @@ int main(int argc, char ** argv)
         center_lon_cvalue[i] = center_lon_value[i] * rate;
     }
     // default units of dst_clat/lon is radians; corresponding to USE_RADIANS
-    double * dst_lat = (double *) cdf->Get_var_by_name ("dst_grid_center_lat")->data;
-    double * dst_lon = (double *) cdf->Get_var_by_name ("dst_grid_center_lon")->data;
+    double * dst_lat = (double *) cdf->Get_var_by_gname ("dst_center_lat")->data;
+    double * dst_lon = (double *) cdf->Get_var_by_gname ("dst_center_lon")->data;
     double * dst_clat = new double [dst_grid_size];
     double * dst_clon = new double [dst_grid_size];
-    int * dst_mask = (int *) cdf->Get_var_by_name ("dst_grid_imask")->data;
+    int * dst_mask = (int *) cdf->Get_var_by_gname ("dst_mask")->data;
     rate = 1.0;
 #ifdef USE_RADIANS
-    if (strcmp (cdf->Get_var_by_name ("dst_grid_center_lat")->prep_list[0]->info, "degrees") == 0)
+    if (strcmp (cdf->Get_var_by_gname ("dst_center_lat")->prep_list[0]->info, "degrees") == 0)
         rate = 3.14159265359 / 180;
 #endif
 #ifdef USE_DEGREES
-    if (strcmp (cdf->Get_var_by_name ("dst_grid_center_lat")->prep_list[0]->info, "radians") == 0)
+    if (strcmp (cdf->Get_var_by_gname ("dst_center_lat")->prep_list[0]->info, "radians") == 0)
         rate = 180 / 3.14159265359;
 #endif
     for (int i = 0; i < dst_grid_size; i ++)
@@ -93,17 +93,17 @@ int main(int argc, char ** argv)
         dst_clat[i] = dst_lat[i] * rate;
         dst_clon[i] = dst_lon[i] * rate;
     }
-    int * src_address_value = (int *) src_address->data;
-    int * dst_address_value = (int *) dst_address->data;
+    UINT * src_address_value = (UINT *) src_address->data;
+    UINT * dst_address_value = (UINT *) dst_address->data;
     
     assert (center_lat_value != (double *) 0);
     assert (center_lon_value != (double *) 0);
-    assert (src_address_value != (int *) 0);
-    assert (dst_address_value != (int *) 0);
+    assert (src_address_value != (UINT *) 0);
+    assert (dst_address_value != (UINT *) 0);
 
-    int * src_address_cvalue = new int [num_links];
-    int * dst_address_cvalue = new int [num_links];
-    for (int i = 0; i < num_links; i ++)
+    UINT * src_address_cvalue = new UINT [num_links];
+    UINT * dst_address_cvalue = new UINT [num_links];
+    for (UINT i = 0; i < num_links; i ++)
     {
         src_address_cvalue[i] = src_address_value[i] - 1;
         dst_address_cvalue[i] = dst_address_value[i] - 1;
@@ -112,7 +112,7 @@ int main(int argc, char ** argv)
     //printf ("src_address[0] = %d\n", src_address_value[0]);
     //printf ("src_grid_center_lat[0] = %f\n", ((double *)center_lat->data)[0]);
 
-    Dim size = cdf->Get_dim_by_ID ((center_lat->dim_list)[0]);
+    //Dim size = cdf->Get_dim_by_ID ((center_lat->dim_list)[0]);
     //Dim corners = cdf->Get_dim_by_ID ((center_lat->dim_list)[1]);
     
     //printf("size: %d\n", size->data);
@@ -141,12 +141,12 @@ int main(int argc, char ** argv)
     //SparseMatrix * transposed = grad->Get_grad_lon_matrix ()->Matrix_transpose();
     //transposed->print ();
     //return 0;
-    double * w = (double *) (cdf->Get_var_by_name ("remap_matrix")->data);
+    double * w = (double *) (cdf->Get_var_by_gname ("remap_matrix")->data);
     double * w1 = new double [num_links];
     double * w2lat = new double [num_links];
     double * w2lon = new double [num_links];
     int wid = 0;
-    for (int i = 0; i < num_links; i ++)
+    for (UINT i = 0; i < num_links; i ++)
     {
         w1[i] = w[wid++];
         w2lat[i] = w[wid++];

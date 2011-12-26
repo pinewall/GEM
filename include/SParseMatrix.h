@@ -1,41 +1,47 @@
 #ifndef SPARSE_MATRIX_H
 #define SPARSE_MATRIX_H
 
+#include "types.h"
 // note: to improve add operation efficency, we could use std::Vector class etc.
 class SparseMatrix
 {
     private:
-        int row_dim;
-        int col_dim;
+        UINT row_dim;
+        UINT col_dim;
         double alpha;      // parameter of increasement factor
-        int increase;
-        int * row_list;
-        int * row_ptr;     // used for row compessed format
-        int * col_list;
-        //int * col_ptr;     // used for col compressed format
+        UINT increase;
+        UINT * row_list;
+        UINT * row_ptr;     // used for row compessed format
+        UINT * col_list;
+        //UINT * col_ptr;     // used for col compressed format
         double * value_list;
-        int buffer_size;
-        int current_size;
+        UINT buffer_size;
+        UINT current_size;
     public:
-        SparseMatrix (int _row_dim, int _col_dim);
-        SparseMatrix (int _row_dim, int _col_dim, int _current_size, int * _row_list, int * _col_list, double * _value_list);
-        SparseMatrix (int _row_dim, int _col_dim, int * _row_ptr, int * _col_list, double * _value_list);
+        SparseMatrix (UINT _row_dim, UINT _col_dim);
+        SparseMatrix (UINT _row_dim, UINT _col_dim, UINT _current_size, UINT * _row_list, UINT * _col_list, double * _value_list);
+        SparseMatrix (UINT _row_dim, UINT _col_dim, UINT * _row_ptr, UINT * _col_list, double * _value_list);
         SparseMatrix (SparseMatrix * copyer);
         ~SparseMatrix ();
 
-        int Get_row_dim ()  {   return row_dim; }
-        int Get_col_dim ()  {   return col_dim; }
-        void Add_entry (int row, int col, double value);
+        UINT Get_row_dim ()  {   return row_dim; }
+        UINT Get_col_dim ()  {   return col_dim; }
+        UINT Get_current_size () {   return current_size;    }
+        UINT * Get_row_list ()   {   return row_list;    }
+        UINT * Get_col_list ()   {   return col_list;    }
+        double * Get_value_list ()  {   return value_list;  }
+        void Add_entry (UINT row, UINT col, double value);
         void Complete_row_ptr ();
         void Resize ();
         void Trim ();
         SparseMatrix * Matrix_transpose ();
+        SparseMatrix * Matrix_scalar_multiple (double alpha);
         SparseMatrix * Matrix_add (SparseMatrix * adder);
         SparseMatrix * Matrix_substract (SparseMatrix * suber);
         SparseMatrix * Matrix_multiple (SparseMatrix * multier);
         // matrix vector multiplication
-        void Matrix_vector_multiple (double * output, int osize, double * input, int isize);
-        void print();
+        void Matrix_vector_multiple (double * output, UINT osize, double * input, UINT isize);
+        void Print();
 };
 
 #endif

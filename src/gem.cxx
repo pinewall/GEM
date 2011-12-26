@@ -1,7 +1,8 @@
 #include "IO_netCDF.h"
 #include "gradient.h"
 #include "field.h"
-#include "assert.h"
+#include "types.h"
+#include <assert.h>
 
 int main(int argc, char ** argv)
 {
@@ -13,55 +14,58 @@ int main(int argc, char ** argv)
     IO_netCDF * cdf = new IO_netCDF ("configure");
     cdf->Read_file (argv[1]);
 
-    int src_grid_size = cdf->Get_dim_by_name ("src_grid_size")->data;
-    int dst_grid_size = cdf->Get_dim_by_name ("dst_grid_size")->data;
-    Dim dim_num_links = cdf->Get_dim_by_name ("num_links");
-    int num_links = dim_num_links->data;
+    UINT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
+    UINT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
+    Dim dim_num_links = cdf->Get_dim_by_gname ("num_links");
+    UINT num_links = dim_num_links->data;
+    Dim dim_num_wgts = cdf->Get_dim_by_gname ("num_wgts");
+    UINT num_wgts = dim_num_wgts->data;
 
-    Var center_lat = cdf->Get_var_by_name ("src_grid_center_lat");
-    Var center_lon = cdf->Get_var_by_name ("src_grid_center_lon");
-    Var grid_dims = cdf->Get_var_by_name ("src_grid_dims");
-    Var src_address = cdf->Get_var_by_name ("src_address");
-    Var dst_address = cdf->Get_var_by_name ("dst_address");
-    Var remap_matrix = cdf->Get_var_by_name ("remap_matrix");
+    Var center_lat = cdf->Get_var_by_gname ("src_center_lat");
+    Var center_lon = cdf->Get_var_by_gname ("src_center_lon");
+    Var grid_dims = cdf->Get_var_by_gname ("src_dims");
+    Var src_address = cdf->Get_var_by_gname ("src_address");
+    Var dst_address = cdf->Get_var_by_gname ("dst_address");
+    Var remap_matrix = cdf->Get_var_by_gname ("remap_matrix");
     assert (center_lat != (Var) 0);
     assert (center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    int lon_dim = ((int *) grid_dims->data)[0];
-    int lat_dim = ((int *) grid_dims->data)[1];
+    UINT lon_dim = ((UINT *) grid_dims->data)[0];
+    UINT lat_dim = ((UINT *) grid_dims->data)[1];
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
     double * center_lat_value = (double *) center_lat->data;
     double * center_lon_value = (double *) center_lon->data;
-    double * dst_lat_deg = (double *) cdf->Get_var_by_name ("dst_grid_center_lat")->data;
-    double * dst_lon_deg = (double *) cdf->Get_var_by_name ("dst_grid_center_lon")->data;
+    double * cdf_dst_lat = (double *) cdf->Get_var_by_gname ("dst_center_lat")->data;
+    double * cdf_dst_lon = (double *) cdf->Get_var_by_gname ("dst_center_lon")->data;
     double * dst_lat = new double [dst_grid_size];
     double * dst_lon = new double [dst_grid_size];
     double deg2rad = 3.14159265359 / 180;
-    for (int i = 0; i < dst_grid_size; i ++)
+    if (strcmp (cdf->Get_var_by_gname ("dst_center_lat")->prep_list[0]->info, "degrees") == 0)
     {
-        dst_lat[i] = dst_lat_deg[i] * deg2rad;
-        dst_lon[i] = dst_lon_deg[i] * deg2rad;
+        for (int i = 0; i < dst_grid_size; i ++)
+        {
+            dst_lat[i] = cdf_dst_lat[i] * deg2rad;
+            dst_lon[i] = cdf_dst_lon[i] * deg2rad;
+        }
     }
-    int * src_address_value = (int *) src_address->data;
-    int * dst_address_value = (int *) dst_address->data;
+    UINT * src_address_value = (UINT *) src_address->data;
+    UINT * dst_address_value = (UINT *) dst_address->data;
     
     assert (center_lat_value != (double *) 0);
     assert (center_lon_value != (double *) 0);
-    assert (src_address_value != (int *) 0);
-    assert (dst_address_value != (int *) 0);
+    assert (src_address_value != (UINT *) 0);
+    assert (dst_address_value != (UINT *) 0);
 
-    int * src_address_cvalue = new int [num_links];
-    int * dst_address_cvalue = new int [num_links];
+    UINT * src_address_cvalue = new UINT [num_links];
+    UINT * dst_address_cvalue = new UINT [num_links];
     for (int i = 0; i < num_links; i ++)
     {
         src_address_cvalue[i] = src_address_value[i] - 1;
         dst_address_cvalue[i] = dst_address_value[i] - 1;
     }
-
-    Dim size = cdf->Get_dim_by_ID ((center_lat->dim_list)[0]);
 
     grad_latlon * grad = new grad_latlon (lat_dim, lon_dim, center_lat_value, center_lon_value);
     grad->Calculate_grad_latlon_matrix();
@@ -89,10 +93,12 @@ int main(int argc, char ** argv)
     delete dst_lon;
     // SparseMatrix final should be <dst_grid_size x src_grid_size>
     SparseMatrix * final = grad->Calculate_final_matrix (m1, m2lat, m2lon);
-    cdf->Modify_dim_data (dim_num_links->ID, final->current_size);
-    cdf->Modify_var_data (src_address->ID, final->Get_col_list ());
-    cdf->Modify_var_data (dst_address->ID, final->Get_row_list ());
-    cdf->Modify_var_data (remap_matrix->ID, final->Get_value_list ());
-    cdf->Write_file (argv[2]);
+    //SparseMatrix * final = new SparseMatrix (1, 1);
+    cdf->Modify_dim_data ("num_links", final->Get_current_size ());
+    cdf->Modify_dim_data ("num_wgts", 1);
+    cdf->Modify_var_data ("src_address", final->Get_col_list ());
+    cdf->Modify_var_data ("dst_address", final->Get_row_list ());
+    cdf->Modify_var_data ("remap_matrix", final->Get_value_list ());
+    //cdf->Write_file (argv[2]);
     return 0;
 }

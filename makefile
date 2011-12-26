@@ -14,7 +14,8 @@ vpath %.cxx UnitTest src
 vpath %.o mod
 
 OBJS=IO_netCDF.o SParseMatrix.o field.o gradient.o \
-     unit_test.o toy_test.o sparse_test.o
+     unit_test.o toy_test.o sparse_test.o \
+	 gem.o
 
 %.cxx: %.h
 	touch $@
@@ -26,6 +27,8 @@ lib:
 	make $(OBJS)
 
 #unit_test: IO_netCDF.o sparse.o gradient.o unit_test.o
+gem: IO_netCDF.o SParseMatrix.o field.o gradient.o gem.o
+	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 unit_test: IO_netCDF.o SParseMatrix.o field.o gradient.o unit_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 toy_test: toy_test.o

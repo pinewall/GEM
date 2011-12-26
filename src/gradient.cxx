@@ -1,10 +1,11 @@
 #include "gradient.h"
+#include "types.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <assert.h>
 
-grad_latlon::grad_latlon (int _lat_dim, int _lon_dim, double * _coord_lat, double * _coord_lon)
+grad_latlon::grad_latlon (UINT _lat_dim, UINT _lon_dim, double * _coord_lat, double * _coord_lon)
 {
     lat_dim = _lat_dim;
     lon_dim = _lon_dim;
@@ -19,8 +20,8 @@ grad_latlon::grad_latlon (int _lat_dim, int _lon_dim, double * _coord_lat, doubl
         coord_lon[i] *= DEGREE_TO_RADIAN;
     }
 #endif
-    memset (neighbor_list, 0, sizeof (int) * MAX_NEIGHBOR);
-    memset (neighbor_order, 0, sizeof (int) * (MAX_NEIGHBOR + 1));
+    memset (neighbor_list, 0, sizeof (UINT) * MAX_NEIGHBOR);
+    memset (neighbor_order, 0, sizeof (UINT) * (MAX_NEIGHBOR + 1));
     memset (delta_lat, 0, sizeof (double) * MAX_NEIGHBOR);
     memset (delta_lon, 0, sizeof (double) * MAX_NEIGHBOR);
     partial_lat = new SparseMatrix (lat_dim * lon_dim, lat_dim * lon_dim);
@@ -35,12 +36,12 @@ grad_latlon::~grad_latlon ()
     delete partial_lon;
 }
 
-void grad_latlon::Get_single_neighbors (int id, int & neighbor_size)
+void grad_latlon::Get_single_neighbors (UINT id, UINT & neighbor_size)
 {
-    assert (id > -1 && id < lat_dim * lon_dim);
-    int lat_id = id / lon_dim;
-    int lon_id = id % lon_dim;
-    int neighbor_id = 0;
+    assert (id >= 0 && id < lat_dim * lon_dim);
+    UINT lat_id = id / lon_dim;
+    UINT lon_id = id % lon_dim;
+    UINT neighbor_id = 0;
 
     // bottom; from left to right
     if (lat_id > 0)
@@ -67,13 +68,13 @@ void grad_latlon::Get_single_neighbors (int id, int & neighbor_size)
     neighbor_size = neighbor_id;
 }
 
-void grad_latlon::Get_single_neighbor_order_by_row (int id, int neighbor_size)
+void grad_latlon::Get_single_neighbor_order_by_row (UINT id, UINT neighbor_size)
 {
     // diaginal element is expressed by -1, others by neighbor id
-    int lat_id = id / lon_dim;
-    int lon_id = id % lon_dim;
-    int lon[3];
-    int current_id = 0;
+    UINT lat_id = id / lon_dim;
+    UINT lon_id = id % lon_dim;
+    UINT lon[3];
+    UINT current_id = 0;
     if (lon_id  == 0)
     {
         lon[0] = 1;
@@ -140,7 +141,7 @@ void grad_latlon::Get_single_neighbor_order_by_row (int id, int neighbor_size)
     }
 }
 
-void grad_latlon::Calculate_single_grad_latlon (int id, int neighbor_size)
+void grad_latlon::Calculate_single_grad_latlon (UINT id, UINT neighbor_size)
 {
     double sum_square_delta_lat = 0.0;
     double sum_square_delta_lon = 0.0;
@@ -162,8 +163,8 @@ void grad_latlon::Calculate_single_grad_latlon (int id, int neighbor_size)
     }
 #endif
 #ifdef NEW_VERSION
-    int neighbor_id = 0;
-    int neighbor_count = 0;
+    UINT neighbor_id = 0;
+    UINT neighbor_count = 0;
     for (int i = 0; i < neighbor_size + 1; i ++)
     {
         neighbor_id = neighbor_order[i];
@@ -199,13 +200,13 @@ void grad_latlon::Calculate_single_grad_latlon (int id, int neighbor_size)
 #ifdef NEW_VERSION
     // add entry by order
     
-    for (int i = 0; i < neighbor_size; i ++)
+    for (UINT i = 0; i < neighbor_size; i ++)
     {
         sum_delta_lat += delta_lat[i];
         sum_delta_lon += delta_lon[i];
     }
     neighbor_count = 0;
-    for (int i = 0; i < neighbor_size + 1; i ++)
+    for (UINT i = 0; i < neighbor_size + 1; i ++)
     {
         neighbor_id = neighbor_order[i];
         if (neighbor_id != -1)
@@ -224,7 +225,7 @@ void grad_latlon::Calculate_single_grad_latlon (int id, int neighbor_size)
     }
 #endif
 #ifdef OLD_VERSION
-    for (int i = 0; i < neighbor_size; i ++)
+    for (UINT i = 0; i < neighbor_size; i ++)
     {
         sum_delta_lat += delta_lat[i];
         sum_delta_lon += delta_lon[i];
@@ -238,9 +239,9 @@ void grad_latlon::Calculate_single_grad_latlon (int id, int neighbor_size)
 
 void grad_latlon::Calculate_grad_latlon_matrix ()
 {
-    int max_id = lat_dim * lon_dim;
-    int neighbor_size = 0;
-    for (int i = 0; i < max_id; i ++)
+    UINT max_id = lat_dim * lon_dim;
+    UINT neighbor_size = 0;
+    for (UINT i = 0; i < max_id; i ++)
     {
         Get_single_neighbors (i, neighbor_size);
         Get_single_neighbor_order_by_row (i, neighbor_size);
@@ -252,14 +253,12 @@ void grad_latlon::Calculate_grad_latlon_matrix ()
 
 SparseMatrix * grad_latlon::Calculate_final_matrix (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon)
 {
-    SparseMatrix * tmplat = partial_lat->Matrix_transpose();
-    SparseMatrix * tmpfinal1 = tmplat->Matrix_multiple (m2lat);
-    SparseMatrix * tmplon = partial_lon->Matrix_transpose();
-    SparseMatrix * tmpfinal2 = tmplon->Matrix_multiple (m2lon);
+    printf ("sizeof(partial_lat): %d\n", partial_lat->Get_current_size ());
+    printf ("sizeof(partial_lon): %d\n", partial_lon->Get_current_size ());
+    SparseMatrix * tmpfinal1 = m2lat->Matrix_multiple (partial_lat);
+    SparseMatrix * tmpfinal2 = m2lon->Matrix_multiple (partial_lon);
     SparseMatrix * tmpfinal = tmpfinal1->Matrix_add (tmpfinal2);
     SparseMatrix * final = tmpfinal->Matrix_add (m1);
-    delete tmplat;
-    delete tmplon;
     delete tmpfinal1;
     delete tmpfinal2;
     delete tmpfinal;
@@ -280,7 +279,7 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
 {
     printf ("Test_grad_latlon\n");
     // TODO
-    int size = lat_dim * lon_dim;
+    UINT size = lat_dim * lon_dim;
     double * analytic_function = new double [size];
     double * analytic_partial_lat = new double [size];
     double * analytic_partial_lon = new double [size];
@@ -292,7 +291,7 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
     assert (discrete_partial_lat != (double *) 0);
     assert (discrete_partial_lon != (double *) 0);
     
-    for (int i = 0; i < size; i ++)
+    for (UINT i = 0; i < size; i ++)
     {
         analytic_function[i] = function (coord_lat[i], coord_lon[i]);
         analytic_partial_lat[i] = partial_lat_function (coord_lat[i], coord_lon[i]);
@@ -304,10 +303,10 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
     partial_lon->Matrix_vector_multiple (discrete_partial_lon, size, analytic_function, size);
 
     printf ("test partial lat\n");
-    for (int i = 0; i < size; i ++)
+    for (UINT i = 0; i < size; i ++)
         printf ("%5.5f\t\t\t%5.5f\n", analytic_partial_lat[i], discrete_partial_lat[i]);
     printf ("test partial lon\n");
-    for (int i = 0; i < size; i ++)
+    for (UINT i = 0; i < size; i ++)
         printf ("%5.5f\t\t\t%5.5f\n", analytic_partial_lat[i], discrete_partial_lat[i]);
     delete [] analytic_function;
     delete [] analytic_partial_lat;
@@ -320,9 +319,9 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
 {
     //printf ("Test_final_results\n");
     printf ("Analytic\t\tOrder1\t\tOrder2_analytic\t\tOrder2_discrete\n");
-    int size = lat_dim * lon_dim;
-    int src_dim = m1->Get_col_dim ();
-    int dst_dim = m1->Get_row_dim ();
+    UINT size = lat_dim * lon_dim;
+    UINT src_dim = m1->Get_col_dim ();
+    UINT dst_dim = m1->Get_row_dim ();
     assert (size == src_dim);
     //partial_lat->print ();
     //partial_lon->print ();
@@ -363,14 +362,14 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     assert (results_order2_discrete_lat != (double *) 0);
     assert (results_order2_discrete_lon != (double *) 0);
     
-    for (int i = 0; i < src_dim; i ++)
+    for (UINT i = 0; i < src_dim; i ++)
     {
         analytic_function[i] = function (coord_lat[i], coord_lon[i]);
         analytic_partial_lat[i] = partial_lat_function (coord_lat[i], coord_lon[i]);
         analytic_partial_lon[i] = partial_lon_function (coord_lat[i], coord_lon[i]);
     }
 
-    for (int i = 0; i < dst_dim; i ++)
+    for (UINT i = 0; i < dst_dim; i ++)
     {
         results_analytic[i] = function (dst_lat[i], dst_lon[i]);
     }
@@ -385,7 +384,7 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     m2lat->Matrix_vector_multiple (results_order2_discrete_lat, dst_dim, discrete_partial_lat, src_dim);
     m2lon->Matrix_vector_multiple (results_order2_discrete_lon, dst_dim, discrete_partial_lon, src_dim);
 
-    for (int i = 0; i < dst_dim; i ++)
+    for (UINT i = 0; i < dst_dim; i ++)
     {
         if (dst_mask[i] == 0)
         {
@@ -397,7 +396,7 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
             results_order2_discrete_lon[i] = 0.0;
         }
     }
-    for (int i = 0; i < dst_dim; i ++)
+    for (UINT i = 0; i < dst_dim; i ++)
     {
         results_order2_analytic[i] = results_order1[i] + results_order2_analytic_lat[i] + results_order2_analytic_lon[i];
         results_order2_discrete[i] = results_order1[i] + results_order2_discrete_lat[i] + results_order2_discrete_lon[i];

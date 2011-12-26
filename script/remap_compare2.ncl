@@ -39,15 +39,15 @@ lons@units="degrees_east";
 
 ; values to draw
 af=values(:,0);
-o1=values(:,1);
+;o1=values(:,1);
 o2a=values(:,2);
 o2d=values(:,3);
 o1_err=values(:,4);
 o2a_err=values(:,5);
 o2d_err=values(:,6);
-o1_af=o1-af;
-o2a_af=o2a-af;
-o2d_af=o2d-af;
+;o1_af=o1-af;
+;o2a_af=o2a-af;
+;o2d_af=o2d-af;
 o2d_o2a=o2d-o2a;
 
 ; from 1D to 2D
@@ -55,17 +55,17 @@ af2d = onedtond(af, (/nlat, nlon/));
 af2d@lat2d=lat2d;
 af2d@lon2d=lon2d;
 
-o1_af2d = onedtond(o1_af, (/nlat, nlon/));
-o1_af2d@lat2d=lat2d;
-o1_af2d@lon2d=lon2d;
+;o1_af2d = onedtond(o1_af, (/nlat, nlon/));
+;o1_af2d@lat2d=lat2d;
+;o1_af2d@lon2d=lon2d;
 
-o2a_af2d = onedtond(o2a_af, (/nlat, nlon/));
-o2a_af2d@lat2d=lat2d;
-o2a_af2d@lon2d=lon2d;
+;o2a_af2d = onedtond(o2a_af, (/nlat, nlon/));
+;o2a_af2d@lat2d=lat2d;
+;o2a_af2d@lon2d=lon2d;
 
-o2d_af2d = onedtond(o2d_af, (/nlat, nlon/));
-o2d_af2d@lat2d=lat2d;
-o2d_af2d@lon2d=lon2d;
+;o2d_af2d = onedtond(o2d_af, (/nlat, nlon/));
+;o2d_af2d@lat2d=lat2d;
+;o2d_af2d@lon2d=lon2d;
 
 o2d_o2a2d = onedtond(o2d_o2a, (/nlat, nlon/));
 o2d_o2a2d@lat2d=lat2d;
@@ -122,19 +122,27 @@ res@lbLabelAngleF       = 45;
 
 res@tiMainFontHeightF   = 0.018
 
-wks1 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".af"/)));
-wks2 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_af"/)));
-wks3 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_af"/)));
-wks4 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_af"/)));
-wks5 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_o2a"/)));
-wks6 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_err"/)));
-wks7 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_err"/)));
-wks8 = gsn_open_wks("ps", str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_err"/)));
+;wks_type = "ps";
+;wks_type@wkOrientation = "landscape";
+;wks_type@wkPaperSize = "A4";
+;wks_type@wkPaperWidthF = 6.0;
+;wks_type@wkPaperHeightF = 9.0;
+wks_type = "png";
+;wks_type@wkWidth = 1000;
+;wks_type@wkHeight = 600;
+wks1 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".af"/)));
+;wks2 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_af"/)));
+;wks3 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_af"/)));
+;wks4 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_af"/)));
+wks5 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_o2a"/)));
+wks6 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o1_err"/)));
+wks7 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2a_err"/)));
+wks8 = gsn_open_wks(wks_type, str_concat((/srcname, "_", dstname, ".", testfunction, ".o2d_err"/)));
 
 gsn_define_colormap(wks1, "gui_default");
-gsn_define_colormap(wks2, "gui_default");
-gsn_define_colormap(wks3, "gui_default");
-gsn_define_colormap(wks4, "gui_default");
+;gsn_define_colormap(wks2, "gui_default");
+;gsn_define_colormap(wks3, "gui_default");
+;gsn_define_colormap(wks4, "gui_default");
 gsn_define_colormap(wks5, "gui_default");
 gsn_define_colormap(wks6, "gui_default");
 gsn_define_colormap(wks7, "gui_default");
@@ -144,17 +152,17 @@ print("Draw graph 1");
 res@tiMainString        = str_concat((/"Analytic function of ", testfunction, " (af) (", dstname, ")"/));
 contour = gsn_csm_contour_map(wks1, af2d(:,:), res);
 
-print("Draw graph 2");
-res@tiMainString        = str_concat((/"Order1 remap errors (o1 - af) (", srcname, " ==> ", dstname, ")"/));
-contour = gsn_csm_contour_map(wks2, o1_af2d(:,:), res);
+;print("Draw graph 2");
+;res@tiMainString        = str_concat((/"Order1 remap errors (o1 - af) (", srcname, " ==> ", dstname, ")"/));
+;contour = gsn_csm_contour_map(wks2, o1_af2d(:,:), res);
 
-print("Draw graph 3");
-res@tiMainString        = str_concat((/"Order2 remap errors with analytic gradients (o2a - af) (", srcname, " ==> ", dstname, ")"/));
-contour = gsn_csm_contour_map(wks3, o2a_af2d(:,:), res);
+;print("Draw graph 3");
+;res@tiMainString        = str_concat((/"Order2 remap errors with analytic gradients (o2a - af) (", srcname, " ==> ", dstname, ")"/));
+;contour = gsn_csm_contour_map(wks3, o2a_af2d(:,:), res);
 
-print("Draw graph 4");
-res@tiMainString        = str_concat((/"Order2 remap errors with discrete gradients (o2d - af) (", srcname, " ==> ", dstname, ")"/));
-contour = gsn_csm_contour_map(wks4, o2d_af2d(:,:), res);
+;print("Draw graph 4");
+;res@tiMainString        = str_concat((/"Order2 remap errors with discrete gradients (o2d - af) (", srcname, " ==> ", dstname, ")"/));
+;contour = gsn_csm_contour_map(wks4, o2d_af2d(:,:), res);
 
 print("Draw graph 5");
 res@tiMainString        = str_concat((/"Differences of order2 remap results (o2d - o2a) (", srcname, " ==> ", dstname, ")"/));

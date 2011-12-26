@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # lists of grid pairs
-grids="G128_T42"
-#grids="deg2.5_deg1 G128_T42 T42_POP43"
+grids="T42_POP43"
+#grids="G128_T42 deg2.5_deg1 T42_POP43"
 
 # lists of test cases
 cases="coslat_coslon cosbell Y2_2 Y16_32"
@@ -60,7 +60,12 @@ do
 #        fi
         if [ -f "value" ]
         then
-            ncl ${nclnormal}
+            if [[ ${g} == "T42_POP43" ]]
+            then
+                ncl ${nclnative}
+            else
+                ncl ${nclnormal}
+            fi
             # mv files to corresponding directory
             mv ${g}.${c}.* ${rootdir}/${g}/${c}/
         fi

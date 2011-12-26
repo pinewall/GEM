@@ -20,22 +20,22 @@ class grad_latlon
         static const double CROSS_LONGITUDE = 3.14159265359 * 1.5;
         static const double DEGREE_TO_RADIAN = 3.14159265359 / 180.0;
 #endif
-        int lat_dim;
-        int lon_dim;
+        UINT lat_dim;
+        UINT lon_dim;
         double * coord_lat;
         double * coord_lon;
-        int neighbor_list[MAX_NEIGHBOR];
-        int neighbor_order[MAX_NEIGHBOR + 1];
+        UINT neighbor_list[MAX_NEIGHBOR];
+        UINT neighbor_order[MAX_NEIGHBOR + 1];
         double delta_lat[MAX_NEIGHBOR];
         double delta_lon[MAX_NEIGHBOR];
         SparseMatrix * partial_lat;
         SparseMatrix * partial_lon;
     public:
-        grad_latlon (int _lat_dim, int _lon_dim, double * _coord_lat, double * _coord_lon);
+        grad_latlon (UINT _lat_dim, UINT _lon_dim, double * _coord_lat, double * _coord_lon);
         ~grad_latlon ();
-        void Get_single_neighbors (int id, int & neighbor_size);
-        void Get_single_neighbor_order_by_row (int id, int neighbor_size);
-        void Calculate_single_grad_latlon (int id, int neighbor_size);
+        void Get_single_neighbors (UINT id, UINT & neighbor_size);
+        void Get_single_neighbor_order_by_row (UINT id, UINT neighbor_size);
+        void Calculate_single_grad_latlon (UINT id, UINT neighbor_size);
         void Calculate_grad_latlon_matrix ();
         SparseMatrix * Calculate_final_matrix (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon);
         SparseMatrix * Get_grad_lat_matrix ();

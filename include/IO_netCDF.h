@@ -13,6 +13,14 @@ typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
 typedef enum {INT, DOUBLE} Data_Type;
 
+#define USE_32BITS
+#ifdef USE_64BITS
+typedef unsigned long   UINT;
+#endif
+#ifdef USE_32BITS
+typedef unsigned int    UINT;
+#endif
+
 struct _Prep
 {
     char        name[NETCDF_STRLEN];
@@ -39,24 +47,26 @@ typedef _Prep * Prep;
 
 struct _Dim
 {
-    int         ID;
     char        name[NETCDF_STRLEN];
-    unsigned int         data;
+    char        gname[NETCDF_STRLEN];       // corresponding name in GEM, used for searching and locating
+    UINT        data;
     Action      action;
     State       state;
 
-    _Dim (int _ID, char * _name) : ID(_ID), data(0), action(KEEP), state(DONE) {
+    _Dim (char * _name, char * _gname) : data(0), action(KEEP), state(DONE) {
         strcpy (name, _name);
+        strcpy (gname, _gname);
     } 
 
-    _Dim (int _ID, char * _name, Action _action, State _state) : ID(_ID), data(0), action(_action), state(_state) {
+    _Dim (char * _name, char * _gname, Action _action, State _state) : data(0), action(_action), state(_state) {
         strcpy (name, _name);
+        strcpy (gname, _gname);
     }
     
     _Dim (_Dim * pdim)
     {
-        ID      = pdim->ID;
         strcpy (name, pdim->name);
+        strcpy (gname, pdim->gname);
         data    = pdim->data;
         action  = pdim->action;
         state   = pdim->state;
@@ -67,10 +77,10 @@ typedef _Dim * Dim;
 
 struct _Var
 {
-    int         ID;
-    char        name[NETCDF_STRLEN];
+    char        name[NETCDF_STRLEN];   // corresponding name in GEM, used for searching and locating
+    char        gname[NETCDF_STRLEN];  
     int         dim_size;
-    int         dim_list[NETCDF_DIMLEN];
+    Dim         dim_list[NETCDF_DIMLEN];
     int         prep_size;
     Prep        prep_list[NETCDF_ATTLEN];
     Data_Type   type;
@@ -79,16 +89,18 @@ struct _Var
     Action      action;
     State       state;
 
-    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, Data_Type _type) : ID(_ID), dim_size(_dim_size), prep_size(0), type(_type), action(KEEP), state(DONE) {
+    _Var (char * _name, char * _gname, int _dim_size, Dim * _dim_list, Data_Type _type) : dim_size(_dim_size), prep_size(0), type(_type), action(KEEP), state(DONE) {
         strcpy (name, _name);
+        strcpy (gname, _gname);
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = _dim_list[i];
         //data = NULL;
         data = (void *) 0;
     }
 
-    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, int _prep_size, Prep * _prep_list, Data_Type _type) : ID(_ID), dim_size(_dim_size), prep_size(_prep_size), type(_type), action(KEEP), state(DONE) {
+    _Var (char * _name, char * _gname, int _dim_size, Dim * _dim_list, int _prep_size, Prep * _prep_list, Data_Type _type) : dim_size(_dim_size), prep_size(_prep_size), type(_type), action(KEEP), state(DONE) {
         strcpy (name, _name);
+        strcpy (gname, _gname);
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = _dim_list[i];
         for (int i = 0; i < prep_size; i ++)
@@ -101,16 +113,18 @@ struct _Var
         data = (void *) 0;
     }
 
-    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, Data_Type _type, Action _action, State _state) : ID(_ID), dim_size(_dim_size), prep_size(0), type(_type), action(_action), state(_state) {
+    _Var (char * _name, char * _gname, int _dim_size, Dim * _dim_list, Data_Type _type, Action _action, State _state) : dim_size(_dim_size), prep_size(0), type(_type), action(_action), state(_state) {
         strcpy (name, _name);
+        strcpy (gname, _gname);
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = _dim_list[i];
         //data = NULL;
         data = (void *) 0;
     }
 
-    _Var (int _ID, char * _name, int _dim_size, int * _dim_list, int _prep_size, Prep * _prep_list, Data_Type _type, Action _action, State _state) : ID(_ID), dim_size(_dim_size), prep_size(_prep_size), type(_type), action(_action), state(_state) {
+    _Var (char * _name, char * _gname, int _dim_size, Dim * _dim_list, int _prep_size, Prep * _prep_list, Data_Type _type, Action _action, State _state) : dim_size(_dim_size), prep_size(_prep_size), type(_type), action(_action), state(_state) {
         strcpy (name, _name);
+        strcpy (gname, _gname);
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = _dim_list[i];
         for (int i = 0; i < prep_size; i ++)
@@ -125,8 +139,8 @@ struct _Var
 
     _Var (_Var * pvar)
     {
-        ID  = pvar->ID;
         strcpy (name, pvar->name);
+        strcpy (gname, pvar->gname);
         dim_size = pvar->dim_size;
         for (int i = 0; i < dim_size; i ++)
             dim_list[i] = (pvar->dim_list)[i];
@@ -173,17 +187,15 @@ class IO_netCDF
         void Print_vars ();
         void Print_global_preps ();
         void Read_file (char * netcdf_file);        // to load data part of Dim and Var
-        Dim Get_dim_by_name (const char * dim_name);
-        Var Get_var_by_name (const char * var_name);
-        Dim Get_dim_by_ID (int dim_id);
-        Var Get_var_by_ID (int var_id);
-        bool Check_dimlist_of_var (int var_id);
-        int Calculate_all_dims_of_var (int var_id);    
-        void Modify_dim_name (int dim_id, char * new_name);
-        void Modify_dim_data (int dim_id, unsigned int new_data);    // note2
-        void Modify_var_name (int var_id, char * new_name);
-        void Modify_var_data (int var_id, void * new_data);
-        void Modify_var_prep (int var_id, char * prep_name, char * new_prep_info);  // used for change units, so new_data is not needed
+        Dim Get_dim_by_gname (const char * gname);
+        Var Get_var_by_gname (const char * gname);
+        bool Check_dimlist_of_var (Var var);
+        int Calculate_all_dims_of_var (Var var);    
+        void Modify_dim_name (const char * gname, char * new_name);
+        void Modify_dim_data (const char * gname, UINT new_data);    // note2
+        void Modify_var_name (const char * gname, char * new_name);
+        void Modify_var_data (const char * gname, void * new_data);
+        void Modify_var_prep (const char * gname, const char * prep_name, char * new_prep_info);  // used for change units, so new_data is not needed
         void Write_file (char * netcdf_file);       // after modification, write to new netCDF file
         static void Check_NC_Error (int error_id)
         {
