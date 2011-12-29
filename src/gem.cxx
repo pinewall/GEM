@@ -14,8 +14,8 @@ int main(int argc, char ** argv)
     IO_netCDF * cdf = new IO_netCDF ("configure");
     cdf->Read_file (argv[1]);
 
-    UINT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
-    UINT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
+    UINT src_grid_size = cdf->Get_dim_by_gname ("src_size")->data;
+    UINT dst_grid_size = cdf->Get_dim_by_gname ("dst_size")->data;
     Dim dim_num_links = cdf->Get_dim_by_gname ("num_links");
     UINT num_links = dim_num_links->data;
     Dim dim_num_wgts = cdf->Get_dim_by_gname ("num_wgts");
@@ -99,6 +99,9 @@ int main(int argc, char ** argv)
     cdf->Modify_var_data ("src_address", final->Get_col_list ());
     cdf->Modify_var_data ("dst_address", final->Get_row_list ());
     cdf->Modify_var_data ("remap_matrix", final->Get_value_list ());
-    //cdf->Write_file (argv[2]);
+    cdf->Write_file (argv[2]);
+    printf ("final remap matrix size: %d\n", final->Get_current_size ());
+    delete final;
+    delete cdf;
     return 0;
 }

@@ -219,9 +219,9 @@ void IO_netCDF::Read_file (char * netcdf_file)
     for (int i = 0; i < var_set_size; i ++)
     {
         var = var_set[i];
-        printf ("reading %s\n", var->name);
+        //printf ("reading %s\n", var->name);
         NC_CHECK (nc_inq_varid (ncid, var->name, &varid));
-        printf ("after reading %s\n", var->name);
+        //printf ("after reading %s\n", var->name);
         // get attributes of var
         for (int j = 0; j < var->prep_size; j ++)
         {
@@ -387,7 +387,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
     //NC_CHECK (nc_redef (ncid));
 
     // define dims
-    //printf ("define dims\n");
+    printf ("define dims\n");
     int dimcount = 0;
     for (int i = 0; i < dim_set_size; i ++)
     {
@@ -399,7 +399,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
         }
     }
     // define vars
-    //printf ("define vars\n");
+    printf ("define vars\n");
     int dim_array[NETCDF_DIMLEN];
     nc_type vartype = NC_INT;
     int varcount = 0;
@@ -422,11 +422,11 @@ void IO_netCDF::Write_file (char * netcdf_file)
     }
     for (int i = 0; i < global_prep_size; i ++)
         NC_CHECK (nc_put_att_text (ncid, NC_GLOBAL, global_prep[i]->name, strlen (global_prep[i]->info), global_prep[i]->info));
-    //printf ("exit define mode\n");
+    printf ("exit define mode\n");
     NC_CHECK (nc_enddef (ncid));
 
     // put vars
-    //printf ("put vars\n");
+    printf ("put vars\n");
     for (int i = 0; i < var_set_size; i ++)
     {
         var = var_set[i];
