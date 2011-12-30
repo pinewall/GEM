@@ -3,7 +3,8 @@
 
 #include <string.h>
 #include <stdio.h>
-#define XML_TEXTLEN 256
+#define XML_TEXTLEN     256
+#define XML_LINE        2048
 
 struct StringPair
 {
@@ -32,6 +33,12 @@ class XMLElement
         char element_text[XML_TEXTLEN];
         int num_of_attributes;
         pair * attributes;
+
+        static void scanDimension (XMLElement * parent, FILE * fp);
+        static void scanVariable (XMLElement * parent, FILE * fp);
+        static void scanAttribute (XMLElement * parent, FILE * fp);
+        static void scanNonLinedXMLElementName (char * elem_name, FILE * fp);
+        static void scanLinedXMLElement (char * elem_name, char * elem_text, FILE * fp);
 
     public:
         XMLElement (const char * xml_file);

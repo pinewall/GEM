@@ -18,9 +18,9 @@ More Design Goals:
 4. innovation:
     seperate remap algorithm and gradient algorithm: suit for all remap platform
 
-===========How To Use==========
-run make lib
-run make unit_test
+===========How To Use (version 0.0) ==========
+make lib
+make unit_test
 ./unit_test remap_ncfile test_function > script/value
 cd script
 (local) 
@@ -33,3 +33,19 @@ cd script
     ./fetch.sh
          
 Note: remap_ncfile should be A_B.nc and test_function can be coslat_coslon, cosbell, Y2_2, and Y16_32
+
+===========How To Use (version 0.1) ==========
++ support 2-order remap matrix
+make lib
+make gem
+./gem input.nc output.nc
+
++ support XML meta data
+make lib
+make meta
+./meta input.nc output.xml
+
+e.g. xml_test is used to test XMLparser and XMLwriter
+make xml_test
+./xml_test input.xml output.xml
+

@@ -1,9 +1,10 @@
 meta.cxx: fetch meta data from netcdf meta data and write to a xml file as template for configuration
 
-xml_reader.cxx: read a xml file and load data
-    next
-    getElements (ElementName)
-    getElementData (ElementName)
+xml_base.cxx: read a xml file and load data
+    class XMLElement
+    * XMLElement (const char * xml_file)        ; xml_parser
+    - addElement (XMLElement * )
+    - getChild (ElementName)
+    - getElementText (ElementName)
+    - writeToFile (const char * xml_file)       ; xml_writer
 
-
-xml_writer.cxx: used for generate meta xml (meta.cxx)
