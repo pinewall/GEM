@@ -11,7 +11,7 @@ const int NETCDF_ATTLEN = 1;
 
 typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
-typedef enum {INT, DOUBLE} Data_Type;
+typedef enum {INT, FLOAT, DOUBLE} Data_Type;
 
 #define USE_32BITS
 #ifdef USE_64BITS

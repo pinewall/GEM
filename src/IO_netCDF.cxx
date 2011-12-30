@@ -237,6 +237,13 @@ void IO_netCDF::Read_file (char * netcdf_file)
             var->data = tmp;
             //printf ("ID %d: %d\n", i, ((int *)var->data)[0]);
         }
+        else if (var->type == FLOAT)
+        {
+            float * tmp = new float [Calculate_all_dims_of_var (var)];
+            NC_CHECK (nc_get_var_float (ncid, varid, tmp));
+            var->data = tmp;
+            //printf ("ID %d: %3.6f\n", i, ((float *)var->data)[0]);
+        }
         else if (var->type == DOUBLE)
         {
             double * tmp = new double [Calculate_all_dims_of_var (var)];
@@ -334,6 +341,8 @@ void IO_netCDF::Modify_var_data (const char * gname, void * new_data)
     int var_all_dims = Calculate_all_dims_of_var (var);
     if (var->type == INT)
         var_all_dims *= sizeof (int);
+    else if (var->type == FLOAT)
+        var_all_dims *= sizeof (float);
     else if (var->type == DOUBLE)
         var_all_dims *= sizeof (double);
     var->data = new char [var_all_dims];
@@ -350,7 +359,7 @@ void IO_netCDF::Modify_var_prep (const char * gname, const char * prep_name, cha
 {
     Var var = Get_var_by_gname (gname);
     int var_all_dims = Calculate_all_dims_of_var (var);
-    assert (var->type == DOUBLE);
+    assert (var->type == DOUBLE || var->type == FLOAT);
     assert (strcmp (var->prep_list[0]->name, prep_name) == 0);
     assert (strcmp (prep_name, "units") == 0);
 
@@ -412,6 +421,8 @@ void IO_netCDF::Write_file (char * netcdf_file)
                 dim_array[j] = var->dim_list[j]->data;
             if (var->type == INT)
                 vartype = NC_INT;
+            else if (var->type == FLOAT)
+                vartype = NC_FLOAT;
             else if (var->type == DOUBLE)
                 vartype = NC_DOUBLE;
             NC_CHECK (nc_def_var (ncid, var->name, vartype, var->dim_size, dim_array, &(varid[i])));
@@ -436,6 +447,10 @@ void IO_netCDF::Write_file (char * netcdf_file)
             if (var->type == INT)
             {
                 NC_CHECK (nc_put_var_int (ncid, varid[i], (int *)var->data));
+            }
+            else if (var->type == FLOAT)
+            {
+                NC_CHECK (nc_put_var_float (ncid, varid[i], (float *)var->data));
             }
             else if (var->type == DOUBLE)
             {

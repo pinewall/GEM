@@ -1,0 +1,9 @@
+meta.cxx: fetch meta data from netcdf meta data and write to a xml file as template for configuration
+
+xml_reader.cxx: read a xml file and load data
+    next
+    getElements (ElementName)
+    getElementData (ElementName)
+
+
+xml_writer.cxx: used for generate meta xml (meta.cxx)
