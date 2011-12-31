@@ -147,10 +147,12 @@ int main (int argc, char ** argv)
             }
             printf ("\t\tattribute_name: %s\n", str_key);
             printf ("\t\tattribute_value: %s\n", str_value);
-            subnode->addElement (new XMLElement ("attribute", 2));
+            subnode->addElement (new XMLElement ("attribute", 4));
             subsubnode = subnode->getChildren ()[j];
             subsubnode->addElement (new XMLElement ("key", str_key));
             subsubnode->addElement (new XMLElement ("value", str_value));
+            subsubnode->addElement (new XMLElement ("action", "KEEP"));
+            subsubnode->addElement (new XMLElement ("state", "DONE"));
         }
         node->addElement (new XMLElement ("action", "KEEP"));
         node->addElement (new XMLElement ("state", "DONE"));
@@ -187,10 +189,12 @@ int main (int argc, char ** argv)
         }
         printf ("\tattribute_name: %s\n", str_key);
         printf ("\tattribute_value: %s\n", str_value);
-        global_attribute_list->addElement (new XMLElement ("global_attribute", 2));
+        global_attribute_list->addElement (new XMLElement ("global_attribute", 4));
         node = global_attribute_list->getChildren ()[i+1];
         node->addElement (new XMLElement ("key", str_key));
         node->addElement (new XMLElement ("value", str_value));
+        node->addElement (new XMLElement ("action", "KEEP"));
+        node->addElement (new XMLElement ("state", "DONE"));
     }
     NC_CHECK (nc_close (ncid));
 

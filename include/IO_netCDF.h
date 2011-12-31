@@ -12,7 +12,7 @@ const int NETCDF_ATTLEN = 8;
 
 typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
-typedef enum {INT, FLOAT, DOUBLE} Data_Type;
+typedef enum {INT, FLOAT, DOUBLE, TEXT} Data_Type;
 
 #define USE_32BITS
 #ifdef USE_64BITS
@@ -26,22 +26,40 @@ struct _Prep
 {
     char        name[NETCDF_STRLEN];
     char        info[NETCDF_STRLEN];
-    _Prep (char * _name)
-    {
+    Data_Type   type;
+    Action      action;
+    State       state;
+
+    _Prep (char * _name) : action(KEEP), state(DONE)    {
         strcpy (name, _name);
         strcpy (info, "null");
+        type = TEXT;
     }
 
-    _Prep (char * _name, char * _info)
-    {
+    _Prep (char * _name, Data_Type _type) : action(KEEP), state(DONE)   {
+        strcpy (name, _name);
+        strcpy (info, "null");
+        type = _type;
+    }
+
+    _Prep (char * _name, char * _info, Data_Type _type) : action(KEEP), state(DONE) {
         strcpy (name, _name);
         strcpy (info, _info);
+        type = _type;
+    }
+
+    _Prep (char * _name, Action _action, State _state) : type(TEXT), action(_action), state(_state)     {
+        strcpy (name, _name);
+        strcpy (info, "null");
     }
 
     _Prep (_Prep * pprep)
     {
         strcpy (name, pprep->name);
         strcpy (info, pprep->info);
+        type = pprep->type;
+        action = pprep->action;
+        state = pprep->state;
     }
 };
 typedef _Prep * Prep;
@@ -109,6 +127,7 @@ struct _Var
             prep_list[i] = _prep_list[i];
             strcpy (prep_list[i]->name, _prep_list[i]->name);
             //strcpy (prep_list[i]->info, _prep_list[i]->info);
+            prep_list[i]->type = _prep_list[i]->type;
         }
         //data = NULL;
         data = (void *) 0;
@@ -132,6 +151,7 @@ struct _Var
         {
             prep_list[i] = _prep_list[i];
             //strcpy (prep_list[i]->info, _prep_list[i]->info);
+            prep_list[i]->type = _prep_list[i]->type;
         }
         //data = NULL;
         data = (void *) 0;
@@ -147,9 +167,10 @@ struct _Var
         prep_size = pvar->prep_size;
         for (int i = 0; i < prep_size; i ++)
         {
-            prep_list[i] = new _Prep ("null", "null");
+            prep_list[i] = new _Prep ("null", "null", TEXT);
             strcpy (prep_list[i]->name, pvar->prep_list[i]->name);
             strcpy (prep_list[i]->info, pvar->prep_list[i]->info);
+            prep_list[i]->type = pvar->prep_list[i]->type;
         }
 
         //data = NULL;
@@ -198,7 +219,7 @@ class IO_netCDF
     public:
         IO_netCDF (int _dim_set_size, int _var_set_size, int _global_prep_size);   // note1
         IO_netCDF (const char * xml_meta);
-        IO_netCDF (int convension);         // SCRIP convension for limited use
+        IO_netCDF (int convension, int token);         // SCRIP convension for limited use
         ~IO_netCDF ();
 
         void Add_new_dim (Dim _dim);        // note1

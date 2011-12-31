@@ -49,3 +49,9 @@ e.g. xml_test is used to test XMLparser and XMLwriter
 make xml_test
 ./xml_test input.xml output.xml
 
++ support netCDF data selection by XML configuration
+make lib
+make cdfcopyer
+./cdfcopyer tiny.nc tiny.xml test.nc
+./cdfcopyer huge.nc geo.xml geo_data.nc
+./cdfcopyer huge.nc variable.xml variable_data.nc

@@ -12,13 +12,14 @@ NETCDF_LIB=-L/opt/netCDF/lib
 NETCDF_INCLUDE=-I/opt/netCDF/include
 LIB=-lnetcdf -lm
 
-vpath %.cxx UnitTest src tools/UnitTest toos/src
+vpath %.cxx UnitTest src tools/UnitTest tools/src
 vpath %.o mod
 
 OBJS=IO_netCDF.o SParseMatrix.o field.o gradient.o \
-     unit_test.o toy_test.o sparse_test.o \
-	 gem.o \
-     xml_base.o xml_test.o meta.o
+     toy_test.o sparse_test.o \
+	 unit_test.o gem.o \
+     xml_base.o meta.o cdfcopyer.o \
+     xml_test.o
 
 %.cxx: %.h
 	touch $@
@@ -29,14 +30,16 @@ lib:
 	$(shell mkdir -p $(MODPATH))
 	make $(OBJS)
 
-#unit_test: IO_netCDF.o sparse.o gradient.o unit_test.o
+# binaries or testers
+cdfcopyer: xml_base.o IO_netCDF.o cdfcopyer.o
+	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 meta: xml_base.o meta.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 xml_test: xml_base.o xml_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 gem: xml_base.o IO_netCDF.o SParseMatrix.o field.o gradient.o gem.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
-unit_test: IO_netCDF.o SParseMatrix.o field.o gradient.o unit_test.o
+unit_test: xml_base.o IO_netCDF.o SParseMatrix.o field.o gradient.o unit_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 toy_test: toy_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@

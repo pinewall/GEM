@@ -132,13 +132,17 @@ void XMLElement::scanVariable (XMLElement * parent, FILE * fp)
             for (int j = 0; j < size; j ++)
             {
                 scanNonLinedXMLElementName (elem_name, fp);                         /** attribute **/
-                subnode->addElement (new XMLElement (elem_name, 2));
+                subnode->addElement (new XMLElement (elem_name, 4));
                 subsubnode = subnode->getChildren () [j];
                 assert (subsubnode != (XMLElement *) 0);
 
                 scanLinedXMLElement (elem_name, elem_text, fp);                     /* key */
                 subsubnode->addElement (new XMLElement (elem_name, elem_text));
                 scanLinedXMLElement (elem_name, elem_text, fp);                     /* value */
+                subsubnode->addElement (new XMLElement (elem_name, elem_text));
+                scanLinedXMLElement (elem_name, elem_text, fp);                     /* action */
+                subsubnode->addElement (new XMLElement (elem_name, elem_text));
+                scanLinedXMLElement (elem_name, elem_text, fp);                     /* state */
                 subsubnode->addElement (new XMLElement (elem_name, elem_text));
 
                 scanNonLinedXMLElementName (elem_name, fp);                         /** attribute **/
@@ -171,7 +175,7 @@ void XMLElement::scanAttribute (XMLElement * parent, FILE * fp)
     XMLElement * node;
     for (int i = 0; i < natts; i ++)
     {
-        parent->addElement (new XMLElement ("global_attribute", 2));
+        parent->addElement (new XMLElement ("global_attribute", 4));
         node = parent->getChildren ()[i];
         assert (node != (XMLElement *) 0);
 
@@ -181,6 +185,12 @@ void XMLElement::scanAttribute (XMLElement * parent, FILE * fp)
         node->addElement (new XMLElement (elem_name, elem_text));
 
         scanLinedXMLElement (elem_name, elem_text, fp);                     /* value */
+        node->addElement (new XMLElement (elem_name, elem_text));
+
+        scanLinedXMLElement (elem_name, elem_text, fp);                     /* action */
+        node->addElement (new XMLElement (elem_name, elem_text));
+
+        scanLinedXMLElement (elem_name, elem_text, fp);                     /* state */
         node->addElement (new XMLElement (elem_name, elem_text));
 
         scanNonLinedXMLElementName (elem_name, fp);                         /** global_attribute **/

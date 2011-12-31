@@ -18,7 +18,7 @@ IO_netCDF::IO_netCDF (int _dim_set_size, int _var_set_size, int _global_prep_siz
     global_prep = new Prep [global_prep_size];
 }
 
-IO_netCDF::IO_netCDF (int convention)
+IO_netCDF::IO_netCDF (int convention, int token)
 {
     // TODO
     dim_set_size = 8;
@@ -185,7 +185,9 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
         for (int j = 0; j < natts; j ++)
         {
             subsubnode = subnode->getChildren ()[j];    /* attribute */
-            prep_array[j] = new _Prep (subsubnode->getChildren ()[0]->getElementText ());
+            String_to_enum (subsubnode->getChildren () [2]->getElementText (), &iaction);   /* action */
+            String_to_enum (subsubnode->getChildren () [3]->getElementText (), &istate);    /* state */
+            prep_array[j] = new _Prep (subsubnode->getChildren ()[0]->getElementText (), (Action) iaction, (State) istate);
         }
 
         var_set[i] = new _Var (node->getChildren ()[0]->getElementText (),
@@ -202,9 +204,11 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
     // fill global attributes
     for (int i = 0; i < global_prep_size; i ++)
     {
-        node = global_attribute_list->getChildren ()[i];/* global_attribute */
-        subnode = node->getChildren ()[0];              /* key */
-        global_prep[i] = new _Prep (subnode->getElementText ());
+        node = global_attribute_list->getChildren ()[i];                        /* global_attribute */
+        subnode = node->getChildren ()[0];                                          /* key */
+        String_to_enum (node->getChildren () [2]->getElementText (), &iaction);     /* action */
+        String_to_enum (node->getChildren () [3]->getElementText (), &istate);      /* state */
+        global_prep[i] = new _Prep (subnode->getElementText (), (Action) iaction, (State) istate);
         current_global_prep_size ++;
     }
 }
@@ -294,6 +298,10 @@ void IO_netCDF::Read_file (char * netcdf_file)
     Dim dim;
     Var var;
     int ncid, dimid, varid;
+    nc_type att_type;
+    int i_value;
+    float f_value;
+    double d_value;
 
     NC_CHECK( nc_open (netcdf_file, NC_NOWRITE, &ncid));
 
@@ -316,7 +324,24 @@ void IO_netCDF::Read_file (char * netcdf_file)
         for (int j = 0; j < var->prep_size; j ++)
         {
             prep = var->prep_list[j];
-            NC_CHECK (nc_get_att_text (ncid, varid, prep->name, prep->info));
+            NC_CHECK (nc_inq_atttype (ncid, varid, prep->name, &att_type));
+            if (att_type == NC_INT)
+            {
+                NC_CHECK (nc_get_att_int (ncid, varid, prep->name, &i_value));
+                sprintf (prep->info, "%d", i_value);
+            }
+            else if (att_type == NC_FLOAT)
+            {
+                NC_CHECK (nc_get_att_float (ncid, varid, prep->name, &f_value));
+                sprintf (prep->info, "%1.0e", f_value);
+            }
+            else if (att_type == NC_DOUBLE)
+            {
+                NC_CHECK (nc_get_att_double (ncid, varid, prep->name, &d_value));
+                sprintf (prep->info, "%1.0e", d_value);
+            }
+            else
+                NC_CHECK (nc_get_att_text (ncid, varid, prep->name, prep->info));
         }
         if (var->data != 0)
             delete var->data;
@@ -347,7 +372,24 @@ void IO_netCDF::Read_file (char * netcdf_file)
     for (int i = 0; i < global_prep_size; i ++)
     {
         prep = global_prep[i];
-        NC_CHECK (nc_get_att_text (ncid, NC_GLOBAL, prep->name, prep->info));
+        NC_CHECK (nc_inq_atttype (ncid, NC_GLOBAL, prep->name, &att_type));
+        if (att_type == NC_INT)
+        {
+            NC_CHECK (nc_get_att_int (ncid, NC_GLOBAL, prep->name, &i_value));
+            sprintf (prep->info, "%d", i_value);
+        }
+        else if (att_type == NC_FLOAT)
+        {
+            NC_CHECK (nc_get_att_float (ncid, NC_GLOBAL, prep->name, &f_value));
+            sprintf (prep->info, "%1.0e", f_value);
+        }
+        else if (att_type == NC_DOUBLE)
+        {
+            NC_CHECK (nc_get_att_double (ncid, NC_GLOBAL, prep->name, &d_value));
+            sprintf (prep->info, "%1.0e", d_value);
+        }
+        else
+            NC_CHECK (nc_get_att_text (ncid, NC_GLOBAL, prep->name, prep->info));
     }
     NC_CHECK (nc_close (ncid));
 }
@@ -519,6 +561,11 @@ void IO_netCDF::Write_file (char * netcdf_file)
     int * varid = new int [var_set_size];
     Dim dim;
     Var var;
+    Prep prep;
+    int i_value;
+    float f_value;
+    double d_value;
+
     //printf ("create ncfile\n");
     NC_CHECK (nc_create (netcdf_file, NC_CLOBBER, &ncid));
     //printf ("enter redefine mode\n");
@@ -557,14 +604,80 @@ void IO_netCDF::Write_file (char * netcdf_file)
             NC_CHECK (nc_def_var (ncid, var->name, vartype, var->dim_size, dim_array, &(varid[i])));
 
             if (var->prep_size > 0)
-            for (int j = 0; j < var->prep_size; j ++)
-                NC_CHECK (nc_put_att_text (ncid, varid[i], var->prep_list[j]->name, strlen (var->prep_list[j]->info), var->prep_list[j]->info));
+                for (int j = 0; j < var->prep_size; j ++)
+                {
+                    prep = var->prep_list[j];
+                    if (prep->action != KEEP)
+                        continue;
+                    if (strcmp (prep->info, "_FillValue") == 0 || strcmp (prep->info, "missing_value") == 0)
+                    {
+                        if (var->type == NC_INT)
+                        {
+                            sscanf (prep->info, "%d", &i_value);
+                            NC_CHECK (nc_put_att_int (ncid, varid[i], prep->name, NC_INT, 1, &i_value));
+                        }
+                        else if (var->type == NC_FLOAT)
+                        {
+                            sscanf (prep->info, "%f", &f_value);
+                            NC_CHECK (nc_put_att_float (ncid, varid[i], prep->name, NC_FLOAT, 1, &f_value));
+                        }
+                        else if (var->type == NC_DOUBLE)
+                        {
+                            sscanf (prep->info, "%lf", &d_value);
+                            NC_CHECK (nc_put_att_double (ncid, varid[i], prep->name, NC_DOUBLE, 1, &d_value));
+                        }
+                    }
+                    if (prep->type == TEXT)
+                    {
+                        NC_CHECK (nc_put_att_text (ncid, varid[i], prep->name, strlen (prep->info), prep->info));
+                    }
+                    else if (prep->type == INT)
+                    {
+                        sscanf (prep->info, "%d", &i_value);
+                        NC_CHECK (nc_put_att_int (ncid, varid[i], prep->name, NC_INT, 1, &i_value));
+                    }
+                    else if (prep->type == FLOAT)
+                    {
+                        sscanf (prep->info, "%f", &f_value);
+                        NC_CHECK (nc_put_att_float (ncid, varid[i], prep->name, NC_FLOAT, 1, &f_value));
+                    }
+                    else if (prep->type == DOUBLE)
+                    {
+                        sscanf (prep->info, "%lf", &d_value);
+                        NC_CHECK (nc_put_att_double (ncid, varid[i], prep->name, NC_DOUBLE, 1, &d_value));
+                    }
+                }
         }
     }
+
+    printf ("define global attributes\n");
     for (int i = 0; i < global_prep_size; i ++)
-        NC_CHECK (nc_put_att_text (ncid, NC_GLOBAL, global_prep[i]->name, strlen (global_prep[i]->info), global_prep[i]->info));
-    printf ("exit define mode\n");
+    {
+        prep = global_prep[i];
+        if (prep->action != KEEP)
+            continue;
+        if (prep->type == TEXT)
+        {
+            NC_CHECK (nc_put_att_text (ncid, varid[i], prep->name, strlen (prep->info), prep->info));
+        }
+        else if (prep->type == INT)
+        {
+            sscanf (prep->info, "%d", &i_value);
+            NC_CHECK (nc_put_att_int (ncid, varid[i], prep->name, NC_INT, 1, &i_value));
+        }
+        else if (prep->type == FLOAT)
+        {
+            sscanf (prep->info, "%f", &f_value);
+            NC_CHECK (nc_put_att_float (ncid, varid[i], prep->name, NC_FLOAT, 1, &f_value));
+        }
+        else if (prep->type == DOUBLE)
+        {
+            sscanf (prep->info, "%lf", &d_value);
+            NC_CHECK (nc_put_att_double (ncid, varid[i], prep->name, NC_DOUBLE, 1, &d_value));
+        }
+    }
     NC_CHECK (nc_enddef (ncid));
+    printf ("exit define mode\n");
 
     // put vars
     printf ("put vars\n");
@@ -589,4 +702,5 @@ void IO_netCDF::Write_file (char * netcdf_file)
         }
     }
     NC_CHECK (nc_close (ncid));
+    printf ("close file\n");
 }
