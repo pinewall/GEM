@@ -4,10 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <netcdf.h>
+#include "xml_base.h"
 
 const int NETCDF_STRLEN = 128;
-const int NETCDF_DIMLEN = 2;
-const int NETCDF_ATTLEN = 1;
+const int NETCDF_DIMLEN = 4;
+const int NETCDF_ATTLEN = 8;
 
 typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
@@ -105,9 +106,9 @@ struct _Var
             dim_list[i] = _dim_list[i];
         for (int i = 0; i < prep_size; i ++)
         {
-            prep_list[i] = new _Prep ("null", "null");
+            prep_list[i] = _prep_list[i];
             strcpy (prep_list[i]->name, _prep_list[i]->name);
-            strcpy (prep_list[i]->info, _prep_list[i]->info);
+            //strcpy (prep_list[i]->info, _prep_list[i]->info);
         }
         //data = NULL;
         data = (void *) 0;
@@ -129,9 +130,8 @@ struct _Var
             dim_list[i] = _dim_list[i];
         for (int i = 0; i < prep_size; i ++)
         {
-            prep_list[i] = new _Prep ("null", "null");
-            strcpy (prep_list[i]->name, _prep_list[i]->name);
-            strcpy (prep_list[i]->info, _prep_list[i]->info);
+            prep_list[i] = _prep_list[i];
+            //strcpy (prep_list[i]->info, _prep_list[i]->info);
         }
         //data = NULL;
         data = (void *) 0;
@@ -158,6 +158,12 @@ struct _Var
         action  = pvar->action;
         state   = pvar->state;
     }
+
+    ~_Var ()
+    {
+        if (data != (void *) 0)
+            delete data;
+    }
 };
 typedef _Var * Var;
 
@@ -175,27 +181,53 @@ class IO_netCDF
         int     current_dim_set_size;       // note1
         int     current_var_set_size;       // note1
         int     current_global_prep_size;   // note1
+        static void String_to_enum (char * string, int * ienum)
+        {
+            if (strcmp (string, "KEEP") == 0)               *ienum = KEEP;
+            else if (strcmp (string, "CHANGE_NAME") == 0)   *ienum = CHANGE_NAME;
+            else if (strcmp (string, "CHANGE_DATA") == 0)   *ienum = CHANGE_DATA;
+            else if (strcmp (string, "DESERT") == 0)        *ienum = DESERT;
+            else if (strcmp (string, "DONE") == 0)          *ienum = DONE;
+            else if (strcmp (string, "TODO") == 0)          *ienum = TODO;
+            else if (strcmp (string, "INT") == 0)           *ienum = INT;
+            else if (strcmp (string, "FLOAT") == 0)         *ienum = FLOAT;
+            else if (strcmp (string, "DOUBLE") == 0)        *ienum = DOUBLE;
+            else                                            *ienum = -1;
+        }
+
     public:
         IO_netCDF (int _dim_set_size, int _var_set_size, int _global_prep_size);   // note1
-        IO_netCDF (char * config_filename);
+        IO_netCDF (const char * xml_meta);
+        IO_netCDF (int convension);         // SCRIP convension for limited use
         ~IO_netCDF ();
 
         void Add_new_dim (Dim _dim);        // note1
         void Add_new_var (Var _var);        // note1
         void Add_new_global_prep (Prep _prep);
+
         void Print_dims ();
         void Print_vars ();
         void Print_global_preps ();
-        void Read_file (char * netcdf_file);        // to load data part of Dim and Var
+
         Dim Get_dim_by_gname (const char * gname);
         Var Get_var_by_gname (const char * gname);
+        Dim Get_dim_by_name (const char * name);
+        int Get_dimID_by_name (const char * name);
+        Var Get_var_by_name (const char * name);
+        int Get_varID_by_name (const char * name);
+
         bool Check_dimlist_of_var (Var var);
-        int Calculate_all_dims_of_var (Var var);    
-        void Modify_dim_name (const char * gname, char * new_name);
+        int Calculate_all_dims_of_var (Var var);
+
+        void Modify_dim_name (const char * gname, const char * new_name);
         void Modify_dim_data (const char * gname, UINT new_data);    // note2
-        void Modify_var_name (const char * gname, char * new_name);
-        void Modify_var_data (const char * gname, void * new_data);
-        void Modify_var_prep (const char * gname, const char * prep_name, char * new_prep_info);  // used for change units, so new_data is not needed
+        void Modify_var_name (const char * gname, const char * new_name);
+        void Modify_var_data (const char * gname, const void * new_data);
+        void Modify_var_prep (const char * gname, const char * key, const char * new_value);  // used for change units, so new_data is not needed
+        void Modify_prep_key (const char * key, const char * new_key);
+        void Modify_prep_value(const char * key, const char * new_value);
+
+        void Read_file (char * netcdf_file);        // to load data part of Dim and Var
         void Write_file (char * netcdf_file);       // after modification, write to new netCDF file
         static void Check_NC_Error (int error_id)
         {

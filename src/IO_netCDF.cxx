@@ -18,10 +18,9 @@ IO_netCDF::IO_netCDF (int _dim_set_size, int _var_set_size, int _global_prep_siz
     global_prep = new Prep [global_prep_size];
 }
 
-IO_netCDF::IO_netCDF (char * config_filename)
+IO_netCDF::IO_netCDF (int convention)
 {
     // TODO
-    //IO_netCDF * cdf = new IO_netCDF (8, 19);
     dim_set_size = 8;
     var_set_size = 19;
     global_prep_size = 7;
@@ -119,6 +118,97 @@ IO_netCDF::IO_netCDF (char * config_filename)
     //return cdf;
 }
 
+IO_netCDF::IO_netCDF (const char * xml_meta)
+{
+    XMLElement * cdf = new XMLElement (xml_meta);
+    XMLElement * dimension_list         = cdf->getChildren ()[0];
+    XMLElement * variable_list          = cdf->getChildren ()[1];
+    XMLElement * global_attribute_list  = cdf->getChildren ()[2];
+    int ndim, nvar, natts;
+    ndim    = dimension_list->getNumberOfChildren ();
+    nvar    = variable_list->getNumberOfChildren ();
+    natts   = global_attribute_list->getNumberOfChildren ();
+
+    // initialize
+    dim_set_size = ndim;
+    var_set_size = nvar;
+    global_prep_size = natts;
+    current_dim_set_size = 0;
+    current_var_set_size = 0;
+    current_global_prep_size = 0;
+    dim_set = new Dim [dim_set_size];
+    var_set = new Var [var_set_size];
+    global_prep = new Prep [global_prep_size];
+
+    int iaction;
+    int istate;
+    int itype;
+    XMLElement * node;
+    XMLElement * subnode;
+    XMLElement * subsubnode;
+    Dim * dim_array;
+    Prep * prep_array;
+
+    // fill dimensions
+    for (int i = 0; i < dim_set_size; i ++)
+    {
+        node = dimension_list->getChildren ()[i];
+        String_to_enum (node->getChildren () [3]->getElementText (), &iaction);
+        String_to_enum (node->getChildren () [4]->getElementText (), &istate);
+        dim_set[i] = new _Dim (node->getChildren ()[0]->getElementText (),
+                               node->getChildren ()[1]->getElementText (),
+                               (Action) iaction, (State) istate);
+        current_dim_set_size ++;
+    }
+
+    // fill variables
+    for (int i = 0; i < var_set_size; i ++)
+    {
+        node = variable_list->getChildren ()[i];
+        String_to_enum (node->getChildren () [2]->getElementText (), &itype);
+        String_to_enum (node->getChildren () [7]->getElementText (), &iaction);
+        String_to_enum (node->getChildren () [8]->getElementText (), &istate);
+        subnode = node->getChildren () [3];             /* ndim */
+        sscanf (subnode->getElementText (), "%d", &ndim);    
+        subnode = node->getChildren () [4];             /** dimensions_of_variable **/
+        dim_array = new Dim[ndim];
+        for (int j = 0; j < ndim; j ++)
+        {
+            subsubnode = subnode->getChildren ()[j];
+            dim_array[j] = Get_dim_by_name (subsubnode->getElementText ()); 
+        }
+        subnode = node->getChildren () [5];             /* natts */
+        sscanf (subnode->getElementText (), "%d", &natts);
+        subnode = node->getChildren () [6];             /** attributes_of_variable **/
+        if (natts != 0)
+            prep_array = new Prep[natts];
+        for (int j = 0; j < natts; j ++)
+        {
+            subsubnode = subnode->getChildren ()[j];    /* attribute */
+            prep_array[j] = new _Prep (subsubnode->getChildren ()[0]->getElementText ());
+        }
+
+        var_set[i] = new _Var (node->getChildren ()[0]->getElementText (),
+                               node->getChildren ()[1]->getElementText (),
+                               ndim, dim_array,
+                               natts, prep_array,
+                               (Data_Type) itype, (Action) iaction, (State) istate);
+        current_var_set_size ++;
+        delete dim_array;
+        if (natts != 0)
+            delete prep_array;
+    }
+
+    // fill global attributes
+    for (int i = 0; i < global_prep_size; i ++)
+    {
+        node = global_attribute_list->getChildren ()[i];/* global_attribute */
+        subnode = node->getChildren ()[0];              /* key */
+        global_prep[i] = new _Prep (subnode->getElementText ());
+        current_global_prep_size ++;
+    }
+}
+
 IO_netCDF::~IO_netCDF ()
 {
     // note: how to delete struct ?
@@ -137,19 +227,19 @@ void IO_netCDF::Add_new_dim (Dim dim)
 {
     //printf("%d    %d\n", current_dim_set_size, dim_set_size);
     assert (current_dim_set_size < dim_set_size);
-    dim_set[current_dim_set_size++] = new _Dim (dim);
+    dim_set[current_dim_set_size++] = dim;
 }
 
 void IO_netCDF::Add_new_var (Var var)
 {
     assert (current_var_set_size < var_set_size);
-    var_set[current_var_set_size++] = new _Var (var);
+    var_set[current_var_set_size++] = var;
 }
 
 void IO_netCDF::Add_new_global_prep (Prep prep)
 {
     assert (current_global_prep_size < global_prep_size);
-    global_prep[current_global_prep_size++] = new _Prep (prep);
+    global_prep[current_global_prep_size++] = prep;
 }
 void IO_netCDF::Print_dims ()
 {
@@ -278,6 +368,38 @@ Var IO_netCDF::Get_var_by_gname (const char * var_gname)
     return (Var) 0;
 }
 
+Dim IO_netCDF::Get_dim_by_name (const char * dim_name)
+{
+    for (int i = 0; i < dim_set_size; i ++)
+        if (strcmp (dim_name, dim_set[i]->name) == 0)
+            return dim_set[i];
+    return (Dim) 0;
+}
+
+int IO_netCDF::Get_dimID_by_name (const char * dim_name)
+{
+    for (int i = 0; i < dim_set_size; i ++)
+        if (strcmp (dim_name, dim_set[i]->name) == 0)
+            return i;
+    return -1;
+}
+
+Var IO_netCDF::Get_var_by_name (const char * var_name)
+{
+    for (int i = 0; i < var_set_size; i ++)
+        if (strcmp (var_name, var_set[i]->name) == 0)
+            return var_set[i];
+    return (Var) 0;
+}
+
+int IO_netCDF::Get_varID_by_name (const char * var_name)
+{
+    for (int i = 0; i < var_set_size; i ++)
+        if (strcmp (var_name, var_set[i]->name) == 0)
+            return i;
+    return -1;
+}
+
 bool IO_netCDF::Check_dimlist_of_var (Var var)
 {
     Dim dim;
@@ -302,7 +424,7 @@ int IO_netCDF::Calculate_all_dims_of_var (Var var)
     return all_dims;
 }
 
-void IO_netCDF::Modify_dim_name (const char * gname, char * new_name)
+void IO_netCDF::Modify_dim_name (const char * gname, const char * new_name)
 {
     Dim dim = Get_dim_by_gname (gname);
     strcpy (dim->name, new_name);
@@ -312,7 +434,7 @@ void IO_netCDF::Modify_dim_name (const char * gname, char * new_name)
     dim->action = KEEP;
 }
 
-void IO_netCDF::Modify_dim_data (const char * gname, unsigned int new_data)
+void IO_netCDF::Modify_dim_data (const char * gname, UINT new_data)
 {
     Dim dim = Get_dim_by_gname (gname);
     dim->data = new_data;
@@ -322,7 +444,7 @@ void IO_netCDF::Modify_dim_data (const char * gname, unsigned int new_data)
     dim->action = KEEP;
 }
 
-void IO_netCDF::Modify_var_name (const char * gname, char * new_name)
+void IO_netCDF::Modify_var_name (const char * gname, const char * new_name)
 {
     Var var = Get_var_by_gname (gname);
     strcpy (var->name, new_name);
@@ -332,7 +454,7 @@ void IO_netCDF::Modify_var_name (const char * gname, char * new_name)
     var->action = KEEP;
 }
 
-void IO_netCDF::Modify_var_data (const char * gname, void * new_data)
+void IO_netCDF::Modify_var_data (const char * gname, const void * new_data)
 {
     Var var = Get_var_by_gname (gname);
     // make sure we complete changes on dimensions
@@ -355,24 +477,24 @@ void IO_netCDF::Modify_var_data (const char * gname, void * new_data)
     var->action = KEEP;
 }
 
-void IO_netCDF::Modify_var_prep (const char * gname, const char * prep_name, char * new_prep_info)
+void IO_netCDF::Modify_var_prep (const char * gname, const char * key, const char * new_value)
 {
     Var var = Get_var_by_gname (gname);
     int var_all_dims = Calculate_all_dims_of_var (var);
     assert (var->type == DOUBLE || var->type == FLOAT);
-    assert (strcmp (var->prep_list[0]->name, prep_name) == 0);
-    assert (strcmp (prep_name, "units") == 0);
+    assert (strcmp (var->prep_list[0]->name, key) == 0);
+    assert (strcmp (key, "units") == 0);
 
     double * data = (double *) var->data;
     double rate = 1.0;
     if (strcmp (var->prep_list[0]->info, "degrees") == 0)
     {
-        if (strcmp (new_prep_info, "radians") == 0)
+        if (strcmp (new_value, "radians") == 0)
             rate = 3.14159265359 / 180;
     }
     else if (strcmp (var->prep_list[0]->info, "radians") == 0)
     {
-        if (strcmp (new_prep_info, "degrees") == 0)
+        if (strcmp (new_value, "degrees") == 0)
             rate = 180 / 3.14159265359;
     }
     for (int i = 0; i < var_all_dims; i ++)
@@ -382,9 +504,16 @@ void IO_netCDF::Modify_var_prep (const char * gname, const char * prep_name, cha
     var->action = KEEP;
 }
 
+void Modify_prep_key (const char * key, const char * new_key)
+{
+}
+
+void Modify_prep_value(const char * key, const char * new_value)
+{
+}
+
 void IO_netCDF::Write_file (char * netcdf_file)
 {
-    // TODO: to write out all dims or vars whose action == KEEP
     int ncid;
     int * dimid = new int [dim_set_size];
     int * varid = new int [var_set_size];
@@ -418,7 +547,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
         if (var->action == KEEP)
         {
             for (int j = 0; j < var->dim_size; j ++)
-                dim_array[j] = var->dim_list[j]->data;
+                dim_array[j] = dimid [ Get_dimID_by_name (var->dim_list[j]->name) ];
             if (var->type == INT)
                 vartype = NC_INT;
             else if (var->type == FLOAT)
@@ -428,7 +557,8 @@ void IO_netCDF::Write_file (char * netcdf_file)
             NC_CHECK (nc_def_var (ncid, var->name, vartype, var->dim_size, dim_array, &(varid[i])));
 
             if (var->prep_size > 0)
-                NC_CHECK (nc_put_att_text (ncid, varid[i], var->prep_list[0]->name, strlen (var->prep_list[0]->info), var->prep_list[0]->info));
+            for (int j = 0; j < var->prep_size; j ++)
+                NC_CHECK (nc_put_att_text (ncid, varid[i], var->prep_list[j]->name, strlen (var->prep_list[j]->info), var->prep_list[j]->info));
         }
     }
     for (int i = 0; i < global_prep_size; i ++)

@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
 
     printf ("%s\n", argv[2]);
 
-    IO_netCDF * cdf = new IO_netCDF ("configure");
+    IO_netCDF * cdf = new IO_netCDF (0);
     //printf("after configure\n");
     //cdf->Print_dims();
     //cdf->Print_vars();

@@ -6,12 +6,12 @@
 
 int main(int argc, char ** argv)
 {
-    if (argc < 3)
+    if (argc < 4)
     {
-        printf ("Usage: ./gem input_nc_filename output_nc_filename\n");
+        printf ("Usage: ./gem input_nc_filename output_nc_filename xml_meta\n");
         return -1;
     }
-    IO_netCDF * cdf = new IO_netCDF ("configure");
+    IO_netCDF * cdf = new IO_netCDF (argv[3]);
     cdf->Read_file (argv[1]);
 
     UINT src_grid_size = cdf->Get_dim_by_gname ("src_size")->data;
@@ -99,6 +99,9 @@ int main(int argc, char ** argv)
     cdf->Modify_var_data ("src_address", final->Get_col_list ());
     cdf->Modify_var_data ("dst_address", final->Get_row_list ());
     cdf->Modify_var_data ("remap_matrix", final->Get_value_list ());
+    cdf->Print_dims ();
+    cdf->Print_vars ();
+    cdf->Print_global_preps ();
     cdf->Write_file (argv[2]);
     printf ("final remap matrix size: %d\n", final->Get_current_size ());
     delete final;

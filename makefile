@@ -3,6 +3,8 @@ CC=icpc -g
 GEMPATH=$(shell pwd)
 SRCPATH=$(GEMPATH)/src
 INCPATH=$(GEMPATH)/include
+TOOLS_SRCPATH=$(GEMPATH)/tools/src
+TOOLS_INCPATH=$(GEMPATH)/tools/include
 MODPATH=$(GEMPATH)/mod
 
 # overwrite with your own lib path of netCDF
@@ -10,7 +12,7 @@ NETCDF_LIB=-L/opt/netCDF/lib
 NETCDF_INCLUDE=-I/opt/netCDF/include
 LIB=-lnetcdf -lm
 
-vpath %.cxx UnitTest src tools
+vpath %.cxx UnitTest src tools/UnitTest toos/src
 vpath %.o mod
 
 OBJS=IO_netCDF.o SParseMatrix.o field.o gradient.o \
@@ -21,7 +23,7 @@ OBJS=IO_netCDF.o SParseMatrix.o field.o gradient.o \
 %.cxx: %.h
 	touch $@
 %.o: %.cxx
-	$(CC) -c $(NETCDF_INCLUDE) -I $(INCPATH) $< -o $(MODPATH)/$@
+	$(CC) -c $(NETCDF_INCLUDE) -I $(INCPATH) -I $(TOOLS_INCPATH) $< -o $(MODPATH)/$@
 
 lib: 
 	$(shell mkdir -p $(MODPATH))
@@ -32,7 +34,7 @@ meta: xml_base.o meta.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 xml_test: xml_base.o xml_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
-gem: IO_netCDF.o SParseMatrix.o field.o gradient.o gem.o
+gem: xml_base.o IO_netCDF.o SParseMatrix.o field.o gradient.o gem.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 unit_test: IO_netCDF.o SParseMatrix.o field.o gradient.o unit_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@

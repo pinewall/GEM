@@ -38,7 +38,7 @@ Note: remap_ncfile should be A_B.nc and test_function can be coslat_coslon, cosb
 + support 2-order remap matrix
 make lib
 make gem
-./gem input.nc output.nc
+./gem input.nc output.nc tiny.xml
 
 + support XML meta data
 make lib
