@@ -324,7 +324,7 @@
 				<attribute>
 					<key>units</key>
 					<value>kelvin</value>
-					<action>DESERT</action>
+					<action>KEEP</action>
 					<state>DONE</state>
 				</attribute>
 				<attribute>
@@ -336,7 +336,7 @@
 				<attribute>
 					<key>_FillValue</key>
 					<value>1e+30f</value>
-					<action>KEEP</action>
+					<action>DESERT</action>
 					<state>DONE</state>
 				</attribute>
 				<attribute>

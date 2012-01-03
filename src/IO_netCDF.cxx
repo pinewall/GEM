@@ -1,6 +1,7 @@
 #include "IO_netCDF.h"
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include <debug.h>
 
 #define NC_CHECK(error_id) {IO_netCDF::Check_NC_Error(error_id);}
@@ -129,13 +130,42 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
     nvar    = variable_list->getNumberOfChildren ();
     natts   = global_attribute_list->getNumberOfChildren ();
 
-    // initialize
-    dim_set_size = ndim;
-    var_set_size = nvar;
-    global_prep_size = natts;
+    dim_set_size = 0;
+    var_set_size = 0;
+    global_prep_size = 0;
     current_dim_set_size = 0;
     current_var_set_size = 0;
     current_global_prep_size = 0;
+
+    // initialize units with tag KEEP/CHANGE_NAME/CHANGE_DATA
+    // dimensions
+    for (int i = 0; i < ndim; i ++)
+    {
+        if (strcmp (dimension_list->getChildren ()[i]->getChildren ()[3]->getElementName (), "DESERT") == 0)
+            continue;
+        else
+            dim_set_size ++;
+    }
+    // variables
+    for (int i = 0; i < nvar; i ++)
+    {
+        if (strcmp (variable_list->getChildren ()[i]->getChildren ()[6]->getElementText (), "DESERT") == 0)
+            continue;
+        else
+            var_set_size ++;
+    }
+    // global attributes
+    for (int i = 0; i < natts; i ++)
+    {
+        if (strcmp (global_attribute_list->getChildren ()[i]->getChildren ()[3]->getElementName (), "DESERT") == 0)
+            continue;
+        else
+            global_prep_size ++;
+    }
+    printf ("<Constructor> dim_set_size: %d\n", dim_set_size);
+    printf ("<Constructor> var_set_size: %d\n", var_set_size);
+    printf ("<Constructor> global_prep_size: %d\n", global_prep_size);
+    // allocate
     dim_set = new Dim [dim_set_size];
     var_set = new Var [var_set_size];
     global_prep = new Prep [global_prep_size];
@@ -155,50 +185,67 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
         node = dimension_list->getChildren ()[i];
         String_to_enum (node->getChildren () [3]->getElementText (), &iaction);
         String_to_enum (node->getChildren () [4]->getElementText (), &istate);
-        dim_set[i] = new _Dim (node->getChildren ()[0]->getElementText (),
-                               node->getChildren ()[1]->getElementText (),
-                               (Action) iaction, (State) istate);
-        current_dim_set_size ++;
+        if ((Action) iaction != DESERT)
+        {
+            String_to_enum (node->getChildren () [3]->getElementText (), &iaction);
+            String_to_enum (node->getChildren () [4]->getElementText (), &istate);
+            dim_set[current_dim_set_size] = new _Dim (  node->getChildren ()[0]->getElementText (),
+                                                        node->getChildren ()[1]->getElementText (),
+                                                        (Action) iaction, (State) istate);
+            current_dim_set_size ++;
+        }
     }
 
     // fill variables
+    int current_ndim;
+    int current_natts;
+    Dim current_Dim;
+    Prep current_Prep;
     for (int i = 0; i < var_set_size; i ++)
     {
         node = variable_list->getChildren ()[i];
+        current_ndim = 0;
+        current_natts = 0;
         String_to_enum (node->getChildren () [2]->getElementText (), &itype);
         String_to_enum (node->getChildren () [7]->getElementText (), &iaction);
         String_to_enum (node->getChildren () [8]->getElementText (), &istate);
-        subnode = node->getChildren () [3];             /* ndim */
-        sscanf (subnode->getElementText (), "%d", &ndim);    
-        subnode = node->getChildren () [4];             /** dimensions_of_variable **/
-        dim_array = new Dim[ndim];
-        for (int j = 0; j < ndim; j ++)
+        if ((Action) iaction != DESERT)
         {
-            subsubnode = subnode->getChildren ()[j];
-            dim_array[j] = Get_dim_by_name (subsubnode->getElementText ()); 
-        }
-        subnode = node->getChildren () [5];             /* natts */
-        sscanf (subnode->getElementText (), "%d", &natts);
-        subnode = node->getChildren () [6];             /** attributes_of_variable **/
-        if (natts != 0)
-            prep_array = new Prep[natts];
-        for (int j = 0; j < natts; j ++)
-        {
-            subsubnode = subnode->getChildren ()[j];    /* attribute */
-            String_to_enum (subsubnode->getChildren () [2]->getElementText (), &iaction);   /* action */
-            String_to_enum (subsubnode->getChildren () [3]->getElementText (), &istate);    /* state */
-            prep_array[j] = new _Prep (subsubnode->getChildren ()[0]->getElementText (), (Action) iaction, (State) istate);
-        }
+            subnode = node->getChildren () [3];             /* ndim */
+            sscanf (subnode->getElementText (), "%d", &ndim);    
+            subnode = node->getChildren () [4];             /** dimensions_of_variable **/
+            dim_array = new Dim[ndim];
+            for (int j = 0; j < ndim; j ++)
+            {
+                subsubnode = subnode->getChildren ()[j];
+                current_Dim = Get_dim_by_name (subsubnode->getElementText ()); 
+                if (current_Dim->action != DESERT)
+                    dim_array[current_ndim++] = current_Dim;
+            }
+            subnode = node->getChildren () [5];             /* natts */
+            sscanf (subnode->getElementText (), "%d", &natts);
+            subnode = node->getChildren () [6];             /** attributes_of_variable **/
+            if (natts != 0)
+                prep_array = new Prep[natts];
+            for (int j = 0; j < natts; j ++)
+            {
+                subsubnode = subnode->getChildren ()[j];    /* attribute */ 
+                String_to_enum (subsubnode->getChildren () [2]->getElementText (), &iaction);   /* action */
+                String_to_enum (subsubnode->getChildren () [3]->getElementText (), &istate);    /* state */
+                if ((Action) iaction != DESERT)
+                    prep_array[current_natts++] = new _Prep (subsubnode->getChildren ()[0]->getElementText (), (Action) iaction, (State) istate);
+            }
 
-        var_set[i] = new _Var (node->getChildren ()[0]->getElementText (),
-                               node->getChildren ()[1]->getElementText (),
-                               ndim, dim_array,
-                               natts, prep_array,
-                               (Data_Type) itype, (Action) iaction, (State) istate);
-        current_var_set_size ++;
-        delete dim_array;
-        if (natts != 0)
-            delete prep_array;
+            var_set[current_var_set_size] = new _Var (  node->getChildren ()[0]->getElementText (),
+                                                        node->getChildren ()[1]->getElementText (),
+                                                        current_ndim, dim_array,
+                                                        current_natts, prep_array,
+                                                        (Data_Type) itype, (Action) iaction, (State) istate);
+            current_var_set_size ++;
+            delete dim_array;
+            if (natts != 0)
+                delete prep_array;
+        }
     }
 
     // fill global attributes
@@ -208,9 +255,15 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
         subnode = node->getChildren ()[0];                                          /* key */
         String_to_enum (node->getChildren () [2]->getElementText (), &iaction);     /* action */
         String_to_enum (node->getChildren () [3]->getElementText (), &istate);      /* state */
-        global_prep[i] = new _Prep (subnode->getElementText (), (Action) iaction, (State) istate);
-        current_global_prep_size ++;
+        if ((Action) iaction != DESERT)
+        {
+            global_prep[current_global_prep_size] = new _Prep (subnode->getElementText (), (Action) iaction, (State) istate);
+            current_global_prep_size ++;
+            printf ("<Write_file>: %s <%d> <%d>\n", subnode->getElementText (), iaction, istate);
+        }
     }
+
+    delete cdf;
 }
 
 IO_netCDF::~IO_netCDF ()
@@ -658,22 +711,23 @@ void IO_netCDF::Write_file (char * netcdf_file)
             continue;
         if (prep->type == TEXT)
         {
-            NC_CHECK (nc_put_att_text (ncid, varid[i], prep->name, strlen (prep->info), prep->info));
+            NC_CHECK (nc_put_att_text (ncid, NC_GLOBAL, prep->name, strlen (prep->info), prep->info));
+            printf ("new global attribute!\n");
         }
         else if (prep->type == INT)
         {
             sscanf (prep->info, "%d", &i_value);
-            NC_CHECK (nc_put_att_int (ncid, varid[i], prep->name, NC_INT, 1, &i_value));
+            NC_CHECK (nc_put_att_int (ncid, NC_GLOBAL, prep->name, NC_INT, 1, &i_value));
         }
         else if (prep->type == FLOAT)
         {
             sscanf (prep->info, "%f", &f_value);
-            NC_CHECK (nc_put_att_float (ncid, varid[i], prep->name, NC_FLOAT, 1, &f_value));
+            NC_CHECK (nc_put_att_float (ncid, NC_GLOBAL, prep->name, NC_FLOAT, 1, &f_value));
         }
         else if (prep->type == DOUBLE)
         {
             sscanf (prep->info, "%lf", &d_value);
-            NC_CHECK (nc_put_att_double (ncid, varid[i], prep->name, NC_DOUBLE, 1, &d_value));
+            NC_CHECK (nc_put_att_double (ncid, NC_GLOBAL, prep->name, NC_DOUBLE, 1, &d_value));
         }
     }
     NC_CHECK (nc_enddef (ncid));
