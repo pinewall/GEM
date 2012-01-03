@@ -53,5 +53,11 @@ make xml_test
 make lib
 make cdfcopyer
 ./cdfcopyer tiny.nc tiny.xml test.nc
-./cdfcopyer huge.nc geo.xml geo_data.nc
-./cdfcopyer huge.nc variable.xml variable_data.nc
+./cdfcopyer cpl.nc geo.xml geo_data.nc
+
+for variables
+cp template/atmvar.template variable-name.xml
+<add corresponding element to variable-name.xml (from template/cpl.xml)>
+./cdfcopyer cpl.nc variable-name.xml variable-name.nc
+
+NOTE: cpl.nc is data dumped from running ESM

@@ -1,24 +1,10 @@
 <?xml version="1.0"?>
 <netcdf>
 	<dimension_list>
-		<ndim>5</ndim>
-		<dimension>
-			<name>time</name>
-			<gname>time</gname>
-			<size>1</size>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</dimension>
-		<dimension>
-			<name>d2</name>
-			<gname>d2</gname>
-			<size>2</size>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</dimension>
+		<ndim>3</ndim>
 		<dimension>
 			<name>n_a</name>
-			<gname>n_a</gname>
+			<gname>grid_size</gname>
 			<size>8192</size>
 			<action>KEEP</action>
 			<state>DONE</state>
@@ -39,78 +25,7 @@
 		</dimension>
 	</dimension_list>
 	<variable_list>
-		<nvar>11</nvar>
-		<variable>
-			<name>time</name>
-			<gname>time</gname>
-			<type>DOUBLE</type>
-			<ndim>1</ndim>
-			<dimensions_of_variable>
-				<name>time</name>
-			</dimensions_of_variable>
-			<natts>4</natts>
-			<attributes_of_variable>
-				<attribute>
-					<key>long_name</key>
-					<value>time</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-				<attribute>
-					<key>units</key>
-					<value>days since 0000-01-01 00:00:00</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-				<attribute>
-					<key>calendar</key>
-					<value>noleap</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-				<attribute>
-					<key>bounds</key>
-					<value>time_bound</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-			</attributes_of_variable>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</variable>
-		<variable>
-			<name>time_bound</name>
-			<gname>time_bound</gname>
-			<type>DOUBLE</type>
-			<ndim>2</ndim>
-			<dimensions_of_variable>
-				<name>time</name>
-				<name>d2</name>
-			</dimensions_of_variable>
-			<natts>3</natts>
-			<attributes_of_variable>
-				<attribute>
-					<key>long_name</key>
-					<value>time average interval boundaries</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-				<attribute>
-					<key>units</key>
-					<value>days since 0000-01-01 00:00:00</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-				<attribute>
-					<key>calendar</key>
-					<value>noleap</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-			</attributes_of_variable>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</variable>
+		<nvar>7</nvar>
 		<variable>
 			<name>domain_a_lat</name>
 			<gname>domain_a_lat</gname>
@@ -262,50 +177,8 @@
 			<state>DONE</state>
 		</variable>
 		<variable>
-			<name>domain_a_index</name>
-			<gname>domain_a_index</gname>
-			<type>FLOAT</type>
-			<ndim>2</ndim>
-			<dimensions_of_variable>
-				<name>nj_a</name>
-				<name>ni_a</name>
-			</dimensions_of_variable>
-			<natts>1</natts>
-			<attributes_of_variable>
-				<attribute>
-					<key>long_name</key>
-					<value>global index</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-			</attributes_of_variable>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</variable>
-		<variable>
-			<name>domain_a_pid</name>
-			<gname>domain_a_pid</gname>
-			<type>FLOAT</type>
-			<ndim>2</ndim>
-			<dimensions_of_variable>
-				<name>nj_a</name>
-				<name>ni_a</name>
-			</dimensions_of_variable>
-			<natts>1</natts>
-			<attributes_of_variable>
-				<attribute>
-					<key>long_name</key>
-					<value>process ID</value>
-					<action>KEEP</action>
-					<state>DONE</state>
-				</attribute>
-			</attributes_of_variable>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</variable>
-		<variable>
-			<name>avXc2a_a_Sx_tref</name>
-			<gname>avXc2a_a_Sx_tref</gname>
+			<name>avXc2a_a_So_t</name>
+			<gname>physical_variable</gname>
 			<type>FLOAT</type>
 			<ndim>3</ndim>
 			<dimensions_of_variable>
@@ -317,7 +190,7 @@
 			<attributes_of_variable>
 				<attribute>
 					<key>long_name</key>
-					<value>temperature, reference</value>
+					<value>temperature</value>
 					<action>KEEP</action>
 					<state>DONE</state>
 				</attribute>
@@ -351,7 +224,7 @@
 		</variable>
 	</variable_list>
 	<global_attribute_list>
-		<natts>5</natts>
+		<natts>2</natts>
 		<global_attribute>
 			<key>title</key>
 			<value>cpl6 output netCDF data file</value>
@@ -359,26 +232,8 @@
 			<state>DONE</state>
 		</global_attribute>
 		<global_attribute>
-			<key>description</key>
-			<value>X02 X02 T42_gx1v1 Y_PRESENT_DAY sw4000</value>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</global_attribute>
-		<global_attribute>
-			<key>history</key>
-			<value>File created: 2011-12-21 18:56:54</value>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</global_attribute>
-		<global_attribute>
 			<key>Conventions</key>
 			<value>CF-1.0 conventions</value>
-			<action>KEEP</action>
-			<state>DONE</state>
-		</global_attribute>
-		<global_attribute>
-			<key>RevisionControl</key>
-			<value>SVN $Id: cpl_iocdf_mod.F90 6621 2007-09-27 16:41:59Z kauff</value>
 			<action>KEEP</action>
 			<state>DONE</state>
 		</global_attribute>

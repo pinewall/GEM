@@ -218,8 +218,8 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
             for (int j = 0; j < ndim; j ++)
             {
                 subsubnode = subnode->getChildren ()[j];
-                current_Dim = Get_dim_by_name (subsubnode->getElementText ()); 
-                if (current_Dim->action != DESERT)
+                current_Dim = Get_dim_by_name (subsubnode->getElementText ());
+                if (current_Dim != (Dim) 0 && current_Dim->action != DESERT)
                     dim_array[current_ndim++] = current_Dim;
             }
             subnode = node->getChildren () [5];             /* natts */

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <netcdf.h>
 #include "xml_base.h"
+#include "types.h"
 
 const int NETCDF_STRLEN = 128;
 const int NETCDF_DIMLEN = 4;
@@ -13,14 +14,6 @@ const int NETCDF_ATTLEN = 8;
 typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
 typedef enum {INT, FLOAT, DOUBLE, TEXT} Data_Type;
-
-#define USE_32BITS
-#ifdef USE_64BITS
-typedef unsigned long   UINT;
-#endif
-#ifdef USE_32BITS
-typedef unsigned int    UINT;
-#endif
 
 struct _Prep
 {
