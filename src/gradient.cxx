@@ -13,13 +13,6 @@ grad_latlon::grad_latlon (UINT _lat_dim, UINT _lon_dim, double * _coord_lat, dou
     coord_lon = new double [lat_dim * lon_dim];
     memcpy (coord_lat, _coord_lat, lat_dim * lon_dim * sizeof (double));
     memcpy (coord_lon, _coord_lon, lat_dim * lon_dim * sizeof (double));
-#ifdef USE_RADIANS
-    for (int i = 0; i < lat_dim * lon_dim; i ++)
-    {
-        coord_lat[i] *= DEGREE_TO_RADIAN;
-        coord_lon[i] *= DEGREE_TO_RADIAN;
-    }
-#endif
     memset (neighbor_list, 0, sizeof (UINT) * MAX_NEIGHBOR);
     memset (neighbor_order, 0, sizeof (UINT) * (MAX_NEIGHBOR + 1));
     memset (delta_lat, 0, sizeof (double) * MAX_NEIGHBOR);

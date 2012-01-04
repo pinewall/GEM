@@ -241,6 +241,9 @@ class IO_netCDF
         void Modify_prep_key (const char * key, const char * new_key);
         void Modify_prep_value(const char * key, const char * new_value);
 
+        void Special_case ();
+        void Signiture (const char * author, const char * date, const char * grid_name);
+
         void Read_file (char * netcdf_file);        // to load data part of Dim and Var
         void Write_file (char * netcdf_file);       // after modification, write to new netCDF file
         static void Check_NC_Error (int error_id)

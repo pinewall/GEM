@@ -344,6 +344,87 @@ void IO_netCDF::Print_global_preps ()
     }
 }
 
+// grid_center_lat, grid_center_lon [should be] double
+// grid_mask [should be] int
+void IO_netCDF::Special_case ()
+{
+    Var var;
+    Dim dim;
+    dim = Get_dim_by_gname ("grid_size");
+    int size = dim->data;
+    printf ("Special_case:: grid_size: %d\n", size);
+
+    for (int i = 0; i < var_set_size; i ++)
+    {
+        var = var_set[i];
+        if (strcmp (var->gname, "grid_mask") == 0)
+        {
+            if (var->type == INT)
+                continue;
+            else
+            {
+                int * imask = new int [size];
+                // float ==> int (default)
+                float * fmask = (float *) var->data;
+                for (int j = 0; j < size; j ++)
+                    imask[j] = (fmask[j] > 0.5) ? 1 : 0;
+                var->type = INT;
+                delete var->data;
+                var->data = imask;
+            }
+        }
+        else if (strcmp (var->gname, "grid_center_lat") == 0 || 
+                 strcmp (var->gname, "grid_center_lon") == 0 ||
+                 strcmp (var->gname, "physical_variable") == 0)
+        {
+            if (var->type == DOUBLE)
+                continue;
+            else
+            {
+                double * dcenter = new double [size];
+                // float ==> double (default)
+                float * fcenter = (float *) var->data;
+                for (int j = 0; j < size; j ++)
+                    dcenter[j] = (double) fcenter[j];
+                var->type = DOUBLE;
+                delete var->data;
+                var->data = dcenter;
+            }
+        }
+    }
+}
+
+void IO_netCDF::Signiture (const char * author, const char * date, const char * grid_name)
+{
+    Prep prep;
+    for (int i = 0; i < global_prep_size; i ++)
+    {
+        prep = global_prep[i];
+        
+        if (strcmp (prep->name, "title") == 0)  // use variable name as title
+        {
+            strcpy (prep->info, "phyiscal variable: ");
+            strcat (prep->info, Get_var_by_gname ("physical_variable")->name);
+        }
+        else if (strcmp (prep->name, "description") == 0)
+        {
+            strcpy (prep->info, "grid name: ");
+            strcat (prep->info, grid_name);
+        }
+        else if (strcmp (prep->name, "history") == 0)
+        {
+            strcpy (prep->info, "Created on ");
+            strcat (prep->info, date);
+            strcat (prep->info, " by ");
+            strcat (prep->info, author);
+        }
+        else if (strcmp (prep->name, "Conventions") == 0)
+        {
+            strcpy (prep->info, "Tsinghua U");
+        }
+    }
+}
+
 void IO_netCDF::Read_file (char * netcdf_file)
 {
     // TODO
@@ -632,7 +713,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
         dim = dim_set[i];
         if (dim->action == KEEP)
         {
-            NC_CHECK (nc_def_dim (ncid, dim->name, dim->data, &(dimid[i])));
+            NC_CHECK (nc_def_dim (ncid, dim->gname, dim->data, &(dimid[i])));
             dimcount ++;
         }
     }
@@ -654,7 +735,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
                 vartype = NC_FLOAT;
             else if (var->type == DOUBLE)
                 vartype = NC_DOUBLE;
-            NC_CHECK (nc_def_var (ncid, var->name, vartype, var->dim_size, dim_array, &(varid[i])));
+            NC_CHECK (nc_def_var (ncid, var->gname, vartype, var->dim_size, dim_array, &(varid[i])));
 
             if (var->prep_size > 0)
                 for (int j = 0; j < var->prep_size; j ++)

@@ -11,14 +11,14 @@
 		</dimension>
 		<dimension>
 			<name>ni_a</name>
-			<gname>ni_a</gname>
+			<gname>nlons</gname>
 			<size>128</size>
 			<action>KEEP</action>
 			<state>DONE</state>
 		</dimension>
 		<dimension>
 			<name>nj_a</name>
-			<gname>nj_a</gname>
+			<gname>nlats</gname>
 			<size>64</size>
 			<action>KEEP</action>
 			<state>DONE</state>
@@ -28,7 +28,7 @@
 		<nvar>7</nvar>
 		<variable>
 			<name>domain_a_lat</name>
-			<gname>domain_a_lat</gname>
+			<gname>grid_center_lat</gname>
 			<type>FLOAT</type>
 			<ndim>2</ndim>
 			<dimensions_of_variable>
@@ -55,7 +55,7 @@
 		</variable>
 		<variable>
 			<name>domain_a_lon</name>
-			<gname>domain_a_lon</gname>
+			<gname>grid_center_lon</gname>
 			<type>FLOAT</type>
 			<ndim>2</ndim>
 			<dimensions_of_variable>
@@ -109,7 +109,7 @@
 		</variable>
 		<variable>
 			<name>domain_a_mask</name>
-			<gname>domain_a_mask</gname>
+			<gname>grid_mask</gname>
 			<type>FLOAT</type>
 			<ndim>2</ndim>
 			<dimensions_of_variable>

@@ -35,7 +35,12 @@ cd script
 Note: remap_ncfile should be A_B.nc and test_function can be coslat_coslon, cosbell, Y2_2, and Y16_32
 
 ===========How To Use (version 0.1) ==========
-+ support 2-order remap matrix
++ support xml-based 2-order test
+make lib
+make unit_test
+./unit_test A_B.nc A_B.xml test_case
+
++ support xml-based 2-order remap matrix
 make lib
 make gem
 ./gem input.nc output.nc tiny.xml
