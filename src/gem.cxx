@@ -31,8 +31,8 @@ int main(int argc, char ** argv)
     assert (center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    int lon_dim = ((int *) grid_dims->data)[0];
-    int lat_dim = ((int *) grid_dims->data)[1];
+    INT lon_dim = ((int *) grid_dims->data)[0];
+    INT lat_dim = ((int *) grid_dims->data)[1];
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
@@ -59,8 +59,8 @@ int main(int argc, char ** argv)
     assert (src_address_value != (int *) 0);
     assert (dst_address_value != (int *) 0);
 
-    int * src_address_cvalue = new int [num_links];
-    int * dst_address_cvalue = new int [num_links];
+    INT * src_address_cvalue = new INT [num_links];
+    INT * dst_address_cvalue = new INT [num_links];
     for (int i = 0; i < num_links; i ++)
     {
         src_address_cvalue[i] = src_address_value[i] - 1;

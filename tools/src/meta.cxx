@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <netcdf.h>
 #include "xml_base.h"
+#include "types.h"
 
 #define NC_CHECK(error_id) {Check_NC_Error(error_id);}
 inline void Check_NC_Error (int error_id)
@@ -36,7 +37,7 @@ int main (int argc, char ** argv)
     /* dimensions */
     char dim_name [128];
     char str_dim_size [128];
-    unsigned int dim_size;
+    CDF_INT dim_size;
     XMLElement * node;
     XMLElement * subnode;
     XMLElement * subsubnode;
@@ -79,7 +80,7 @@ int main (int argc, char ** argv)
     double d_value;
     float f_value;
     int i_value;
-    unsigned int len_str_value;
+    CDF_INT len_str_value;
     printf ("number of vars: %d\n", nvar);
     sprintf (str_var_size, "%d", nvar);
     variable_list->addElement (new XMLElement ("nvar", str_var_size));

@@ -42,9 +42,9 @@ int main(int argc, char ** argv)
     cdf->Read_file (argv[1]);
     //cdf->Write_file ("output.nc");
 
-    CDF_INT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
-    CDF_INT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
-    CDF_INT num_links = cdf->Get_dim_by_gname ("num_links")->data;
+    INT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
+    INT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
+    INT num_links = cdf->Get_dim_by_gname ("num_links")->data;
 
     Var center_lat = cdf->Get_var_by_gname ("src_grid_center_lat");
     Var center_lon = cdf->Get_var_by_gname ("src_grid_center_lon");
@@ -56,8 +56,8 @@ int main(int argc, char ** argv)
     assert (center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    int lon_dim = ((int *) grid_dims->data)[0];
-    int lat_dim = ((int *) grid_dims->data)[1];
+    INT lon_dim = ((int *) grid_dims->data)[0];
+    INT lat_dim = ((int *) grid_dims->data)[1];
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
@@ -98,8 +98,8 @@ int main(int argc, char ** argv)
     assert (src_address_value != (int *) 0);
     assert (dst_address_value != (int *) 0);
 
-    int * src_address_cvalue = new int [num_links];
-    int * dst_address_cvalue = new int [num_links];
+    INT * src_address_cvalue = new INT [num_links];
+    INT * dst_address_cvalue = new INT [num_links];
     for (int i = 0; i < num_links; i ++)
     {
         src_address_cvalue[i] = src_address_value[i] - 1;
@@ -163,8 +163,8 @@ int main(int argc, char ** argv)
     delete w2lon;
     delete src_address_cvalue;
     delete dst_address_cvalue;
-    CDF_INT dst_nlon = ((CDF_INT *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[0];
-    CDF_INT dst_nlat = ((CDF_INT *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[1];
+    INT dst_nlon = ((CDF_INT *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[0];
+    INT dst_nlat = ((CDF_INT *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[1];
     if (strcmp (argv[3], "unit") == 0)
         grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[3], "coslat_coslon") == 0)
