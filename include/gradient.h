@@ -2,11 +2,9 @@
 #define GRADIENT_H
 
 #include "SParseMatrix.h"
+#include "types.h"
 #define NEW_VERSION
-//#include "sparse.h"
 
-//#define USE_DEGREES
-#define USE_RADIANS
 class grad_latlon
 {
     private:
@@ -20,22 +18,22 @@ class grad_latlon
         static const double CROSS_LONGITUDE = 3.14159265359 * 1.5;
         static const double DEGREE_TO_RADIAN = 3.14159265359 / 180.0;
 #endif
-        UINT lat_dim;
-        UINT lon_dim;
+        INT lat_dim;
+        INT lon_dim;
         double * coord_lat;
         double * coord_lon;
-        UINT neighbor_list[MAX_NEIGHBOR];
-        UINT neighbor_order[MAX_NEIGHBOR + 1];
+        INT neighbor_list[MAX_NEIGHBOR];
+        INT neighbor_order[MAX_NEIGHBOR + 1];
         double delta_lat[MAX_NEIGHBOR];
         double delta_lon[MAX_NEIGHBOR];
         SparseMatrix * partial_lat;
         SparseMatrix * partial_lon;
     public:
-        grad_latlon (UINT _lat_dim, UINT _lon_dim, double * _coord_lat, double * _coord_lon);
+        grad_latlon (INT _lat_dim, INT _lon_dim, double * _coord_lat, double * _coord_lon);
         ~grad_latlon ();
-        void Get_single_neighbors (UINT id, UINT & neighbor_size);
-        void Get_single_neighbor_order_by_row (UINT id, UINT neighbor_size);
-        void Calculate_single_grad_latlon (UINT id, UINT neighbor_size);
+        void Get_single_neighbors (INT id, INT & neighbor_size);
+        void Get_single_neighbor_order_by_row (INT id, INT neighbor_size);
+        void Calculate_single_grad_latlon (INT id, INT neighbor_size);
         void Calculate_grad_latlon_matrix ();
         SparseMatrix * Calculate_final_matrix (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon);
         SparseMatrix * Get_grad_lat_matrix ();
@@ -43,5 +41,6 @@ class grad_latlon
 
         void Test_grad_latlon (double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double));
         void Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon, int * dst_mask);
+        void Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double, double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon, int * dst_mask, CDF_INT dst_nlat, CDF_INT dst_nlon);
 };
 #endif

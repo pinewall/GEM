@@ -118,6 +118,57 @@ double partial_lon_function_spherical_harmonic_2_2 (double lat, double lon)
     return result;
 }
 
+// area-averaged spherical harmonic l=2, m=2
+double function_aa_spherical_harmonic_2_2 (double lat, double lon, double dlat, double dlon)
+{
+    /* function = 1/2 [ 1 + 1/3 (1 + cos2lat)*(1 - cos2dlat) ] * cos2lon * sin2dlon / dlon */
+    double cos2lat = cos (2 * lat);
+    double cos2lon = cos (2 * lon);
+    double result = 1 - cos (2 * dlat);
+    result *= (1 + cos2lat);
+    result /= 3;
+    result += 1;
+    result /= 2;
+    result *= cos2lon;
+    result *= sin (2 * dlon);
+    result /= dlon;
+    result += 2;
+    /*
+    tmp = sin (lat + dlat);
+    result += (tmp + tmp * tmp * tmp / 3);
+    tmp = sin (lat - dlat);
+    result -= (tmp + tmp * tmp * tmp / 3);
+    result *= ((sin (2*lon + 2*dlon) - sin (2*lon - 2*dlon)));
+    result /= ((sin(lat + dlat) - sin (lat - dlat)));
+    result /= 2;
+    result /= dlon;
+    */
+
+    return result;
+}
+
+double partial_lat_function_aa_spherical_harmonic_2_2 (double lat, double lon, double dlat, double dlon)
+{
+    double result = 0.0;
+    double tmp = cos (lat + dlat);
+    result += tmp * tmp * tmp;
+    tmp = cos (lat - dlat);
+    result -= tmp * tmp * tmp;
+    result *= 3;
+    result /= 2;
+    result *= (sin (2*lon + 2*dlon) - sin (2*lon - 2*dlon));
+    result /= (sin(lat + dlat) - sin (lat - dlat));
+    result /= 2;
+    result /= dlon;
+    return result;
+}
+
+double partial_lon_function_aa_spherical_harmonic_2_2 (double lat, double lon, double dlat, double dlon)
+{
+    double result = - 2.0 * cos (lat) * sin (2.0 * lon);
+    return result;
+}
+
 // spherical harmonic l=16, m=32
 double function_spherical_harmonic_16_32 (double lat, double lon)
 {

@@ -21,6 +21,11 @@ double function_spherical_harmonic_2_2 (double lat, double lon);
 double partial_lat_function_spherical_harmonic_2_2 (double lat, double lon);
 double partial_lon_function_spherical_harmonic_2_2 (double lat, double lon);
 
+// area-averaged spherical harmonic l=2, m=2
+double function_aa_spherical_harmonic_2_2 (double lat, double lon, double dlat, double dlon);
+double partial_lat_aa_function_spherical_harmonic_2_2 (double lat, double lon, double dlat, double dlon);
+double partial_lon_aa_function_spherical_harmonic_2_2 (double lat, double lon, double dlat, double dlon);
+
 // spherical harmonic l=16, m=32
 double function_spherical_harmonic_16_32 (double lat, double lon);
 double partial_lat_function_spherical_harmonic_16_32 (double lat, double lon);

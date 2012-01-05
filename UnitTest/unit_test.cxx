@@ -1,5 +1,6 @@
 #include "IO_netCDF.h"
 #include "gradient.h"
+#include "types.h"
 #include "field.h"
 #include "assert.h"
 
@@ -41,9 +42,9 @@ int main(int argc, char ** argv)
     cdf->Read_file (argv[1]);
     //cdf->Write_file ("output.nc");
 
-    UINT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
-    UINT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
-    UINT num_links = cdf->Get_dim_by_gname ("num_links")->data;
+    CDF_INT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
+    CDF_INT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
+    CDF_INT num_links = cdf->Get_dim_by_gname ("num_links")->data;
 
     Var center_lat = cdf->Get_var_by_gname ("src_grid_center_lat");
     Var center_lon = cdf->Get_var_by_gname ("src_grid_center_lon");
@@ -55,8 +56,8 @@ int main(int argc, char ** argv)
     assert (center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    UINT lon_dim = ((UINT *) grid_dims->data)[0];
-    UINT lat_dim = ((UINT *) grid_dims->data)[1];
+    int lon_dim = ((int *) grid_dims->data)[0];
+    int lat_dim = ((int *) grid_dims->data)[1];
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
@@ -66,15 +67,9 @@ int main(int argc, char ** argv)
     double * center_lat_cvalue = new double [src_grid_size];
     double * center_lon_cvalue = new double [src_grid_size];
     double rate = 1.0;
-#ifdef USE_DEGREES
-    if (strcmp (center_lat->prep_list[0]->info, "radians") == 0)
-        rate = 180 / 3.14159265359;
-#endif
-#ifdef USE_RADIANS
     if (strcmp (center_lat->prep_list[0]->info, "degrees") == 0)
         rate = 3.14159265359 / 180;
-#endif
-
+    printf ("rate: %f\n", rate);
     for (int i = 0; i < src_grid_size; i ++)
     {
         center_lat_cvalue[i] = center_lat_value[i] * rate;
@@ -85,32 +80,27 @@ int main(int argc, char ** argv)
     double * dst_lon = (double *) cdf->Get_var_by_gname ("dst_grid_center_lon")->data;
     double * dst_clat = new double [dst_grid_size];
     double * dst_clon = new double [dst_grid_size];
-    int * dst_mask = (int *) cdf->Get_var_by_gname ("dst_grid_mask")->data;
+    int * dst_mask = (int *) cdf->Get_var_by_gname ("dst_grid_imask")->data;
     rate = 1.0;
-#ifdef USE_RADIANS
     if (strcmp (cdf->Get_var_by_gname ("dst_grid_center_lat")->prep_list[0]->info, "degrees") == 0)
         rate = 3.14159265359 / 180;
-#endif
-#ifdef USE_DEGREES
-    if (strcmp (cdf->Get_var_by_gname ("dst_grid_center_lat")->prep_list[0]->info, "radians") == 0)
-        rate = 180 / 3.14159265359;
-#endif
+    printf ("rate: %f\n", rate);
     for (int i = 0; i < dst_grid_size; i ++)
     {
         dst_clat[i] = dst_lat[i] * rate;
         dst_clon[i] = dst_lon[i] * rate;
     }
-    UINT * src_address_value = (UINT *) src_address->data;
-    UINT * dst_address_value = (UINT *) dst_address->data;
+    int * src_address_value = (int *) src_address->data;
+    int * dst_address_value = (int *) dst_address->data;
     
     assert (center_lat_value != (double *) 0);
     assert (center_lon_value != (double *) 0);
-    assert (src_address_value != (UINT *) 0);
-    assert (dst_address_value != (UINT *) 0);
+    assert (src_address_value != (int *) 0);
+    assert (dst_address_value != (int *) 0);
 
-    UINT * src_address_cvalue = new UINT [num_links];
-    UINT * dst_address_cvalue = new UINT [num_links];
-    for (UINT i = 0; i < num_links; i ++)
+    int * src_address_cvalue = new int [num_links];
+    int * dst_address_cvalue = new int [num_links];
+    for (int i = 0; i < num_links; i ++)
     {
         src_address_cvalue[i] = src_address_value[i] - 1;
         dst_address_cvalue[i] = dst_address_value[i] - 1;
@@ -153,7 +143,7 @@ int main(int argc, char ** argv)
     double * w2lat = new double [num_links];
     double * w2lon = new double [num_links];
     int wid = 0;
-    for (UINT i = 0; i < num_links; i ++)
+    for (int i = 0; i < num_links; i ++)
     {
         w1[i] = w[wid++];
         w2lat[i] = w[wid++];
@@ -173,6 +163,8 @@ int main(int argc, char ** argv)
     delete w2lon;
     delete src_address_cvalue;
     delete dst_address_cvalue;
+    CDF_INT dst_nlon = ((CDF_INT *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[0];
+    CDF_INT dst_nlat = ((CDF_INT *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[1];
     if (strcmp (argv[3], "unit") == 0)
         grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[3], "coslat_coslon") == 0)
@@ -181,6 +173,8 @@ int main(int argc, char ** argv)
         grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, dst_clat, dst_clon, dst_mask);
     else if (strcmp (argv[3], "Y2_2") == 0)
         grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_clat, dst_clon, dst_mask);
+    else if (strcmp (argv[3], "aaY2_2") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_aa_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_clat, dst_clon, dst_mask, dst_nlat, dst_nlon);
     else if (strcmp (argv[3], "Y16_32") == 0)
         grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, dst_clat, dst_clon, dst_mask);
     else

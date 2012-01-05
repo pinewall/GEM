@@ -5,7 +5,7 @@
 #include <math.h>
 #include <assert.h>
 
-grad_latlon::grad_latlon (UINT _lat_dim, UINT _lon_dim, double * _coord_lat, double * _coord_lon)
+grad_latlon::grad_latlon (INT _lat_dim, INT _lon_dim, double * _coord_lat, double * _coord_lon)
 {
     lat_dim = _lat_dim;
     lon_dim = _lon_dim;
@@ -13,8 +13,8 @@ grad_latlon::grad_latlon (UINT _lat_dim, UINT _lon_dim, double * _coord_lat, dou
     coord_lon = new double [lat_dim * lon_dim];
     memcpy (coord_lat, _coord_lat, lat_dim * lon_dim * sizeof (double));
     memcpy (coord_lon, _coord_lon, lat_dim * lon_dim * sizeof (double));
-    memset (neighbor_list, 0, sizeof (UINT) * MAX_NEIGHBOR);
-    memset (neighbor_order, 0, sizeof (UINT) * (MAX_NEIGHBOR + 1));
+    memset (neighbor_list, 0, sizeof (INT) * MAX_NEIGHBOR);
+    memset (neighbor_order, 0, sizeof (INT) * (MAX_NEIGHBOR + 1));
     memset (delta_lat, 0, sizeof (double) * MAX_NEIGHBOR);
     memset (delta_lon, 0, sizeof (double) * MAX_NEIGHBOR);
     partial_lat = new SparseMatrix (lat_dim * lon_dim, lat_dim * lon_dim);
@@ -29,12 +29,12 @@ grad_latlon::~grad_latlon ()
     delete partial_lon;
 }
 
-void grad_latlon::Get_single_neighbors (UINT id, UINT & neighbor_size)
+void grad_latlon::Get_single_neighbors (INT id, INT & neighbor_size)
 {
     assert (id >= 0 && id < lat_dim * lon_dim);
-    UINT lat_id = id / lon_dim;
-    UINT lon_id = id % lon_dim;
-    UINT neighbor_id = 0;
+    INT lat_id = id / lon_dim;
+    INT lon_id = id % lon_dim;
+    INT neighbor_id = 0;
 
     // bottom; from left to right
     if (lat_id > 0)
@@ -61,13 +61,13 @@ void grad_latlon::Get_single_neighbors (UINT id, UINT & neighbor_size)
     neighbor_size = neighbor_id;
 }
 
-void grad_latlon::Get_single_neighbor_order_by_row (UINT id, UINT neighbor_size)
+void grad_latlon::Get_single_neighbor_order_by_row (INT id, INT neighbor_size)
 {
     // diaginal element is expressed by -1, others by neighbor id
-    UINT lat_id = id / lon_dim;
-    UINT lon_id = id % lon_dim;
-    UINT lon[3];
-    UINT current_id = 0;
+    INT lat_id = id / lon_dim;
+    INT lon_id = id % lon_dim;
+    INT lon[3];
+    INT current_id = 0;
     if (lon_id  == 0)
     {
         lon[0] = 1;
@@ -134,7 +134,7 @@ void grad_latlon::Get_single_neighbor_order_by_row (UINT id, UINT neighbor_size)
     }
 }
 
-void grad_latlon::Calculate_single_grad_latlon (UINT id, UINT neighbor_size)
+void grad_latlon::Calculate_single_grad_latlon (INT id, INT neighbor_size)
 {
     double sum_square_delta_lat = 0.0;
     double sum_square_delta_lon = 0.0;
@@ -156,8 +156,8 @@ void grad_latlon::Calculate_single_grad_latlon (UINT id, UINT neighbor_size)
     }
 #endif
 #ifdef NEW_VERSION
-    UINT neighbor_id = 0;
-    UINT neighbor_count = 0;
+    INT neighbor_id = 0;
+    INT neighbor_count = 0;
     for (int i = 0; i < neighbor_size + 1; i ++)
     {
         neighbor_id = neighbor_order[i];
@@ -193,13 +193,13 @@ void grad_latlon::Calculate_single_grad_latlon (UINT id, UINT neighbor_size)
 #ifdef NEW_VERSION
     // add entry by order
     
-    for (UINT i = 0; i < neighbor_size; i ++)
+    for (INT i = 0; i < neighbor_size; i ++)
     {
         sum_delta_lat += delta_lat[i];
         sum_delta_lon += delta_lon[i];
     }
     neighbor_count = 0;
-    for (UINT i = 0; i < neighbor_size + 1; i ++)
+    for (INT i = 0; i < neighbor_size + 1; i ++)
     {
         neighbor_id = neighbor_order[i];
         if (neighbor_id != -1)
@@ -218,7 +218,7 @@ void grad_latlon::Calculate_single_grad_latlon (UINT id, UINT neighbor_size)
     }
 #endif
 #ifdef OLD_VERSION
-    for (UINT i = 0; i < neighbor_size; i ++)
+    for (INT i = 0; i < neighbor_size; i ++)
     {
         sum_delta_lat += delta_lat[i];
         sum_delta_lon += delta_lon[i];
@@ -232,9 +232,9 @@ void grad_latlon::Calculate_single_grad_latlon (UINT id, UINT neighbor_size)
 
 void grad_latlon::Calculate_grad_latlon_matrix ()
 {
-    UINT max_id = lat_dim * lon_dim;
-    UINT neighbor_size = 0;
-    for (UINT i = 0; i < max_id; i ++)
+    INT max_id = lat_dim * lon_dim;
+    INT neighbor_size = 0;
+    for (INT i = 0; i < max_id; i ++)
     {
         Get_single_neighbors (i, neighbor_size);
         Get_single_neighbor_order_by_row (i, neighbor_size);
@@ -272,7 +272,7 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
 {
     printf ("Test_grad_latlon\n");
     // TODO
-    UINT size = lat_dim * lon_dim;
+    INT size = lat_dim * lon_dim;
     double * analytic_function = new double [size];
     double * analytic_partial_lat = new double [size];
     double * analytic_partial_lon = new double [size];
@@ -284,7 +284,7 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
     assert (discrete_partial_lat != (double *) 0);
     assert (discrete_partial_lon != (double *) 0);
     
-    for (UINT i = 0; i < size; i ++)
+    for (INT i = 0; i < size; i ++)
     {
         analytic_function[i] = function (coord_lat[i], coord_lon[i]);
         analytic_partial_lat[i] = partial_lat_function (coord_lat[i], coord_lon[i]);
@@ -296,10 +296,10 @@ void grad_latlon::Test_grad_latlon (double (* function)(double, double), double 
     partial_lon->Matrix_vector_multiple (discrete_partial_lon, size, analytic_function, size);
 
     printf ("test partial lat\n");
-    for (UINT i = 0; i < size; i ++)
+    for (INT i = 0; i < size; i ++)
         printf ("%5.5f\t\t\t%5.5f\n", analytic_partial_lat[i], discrete_partial_lat[i]);
     printf ("test partial lon\n");
-    for (UINT i = 0; i < size; i ++)
+    for (INT i = 0; i < size; i ++)
         printf ("%5.5f\t\t\t%5.5f\n", analytic_partial_lat[i], discrete_partial_lat[i]);
     delete [] analytic_function;
     delete [] analytic_partial_lat;
@@ -312,9 +312,9 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
 {
     //printf ("Test_final_results\n");
     printf ("Analytic\t\tOrder1\t\tOrder2_analytic\t\tOrder2_discrete\n");
-    UINT size = lat_dim * lon_dim;
-    UINT src_dim = m1->Get_col_dim ();
-    UINT dst_dim = m1->Get_row_dim ();
+    INT size = lat_dim * lon_dim;
+    INT src_dim = m1->Get_col_dim ();
+    INT dst_dim = m1->Get_row_dim ();
     assert (size == src_dim);
     //partial_lat->print ();
     //partial_lon->print ();
@@ -355,14 +355,14 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     assert (results_order2_discrete_lat != (double *) 0);
     assert (results_order2_discrete_lon != (double *) 0);
     
-    for (UINT i = 0; i < src_dim; i ++)
+    for (INT i = 0; i < src_dim; i ++)
     {
         analytic_function[i] = function (coord_lat[i], coord_lon[i]);
         analytic_partial_lat[i] = partial_lat_function (coord_lat[i], coord_lon[i]);
         analytic_partial_lon[i] = partial_lon_function (coord_lat[i], coord_lon[i]);
     }
 
-    for (UINT i = 0; i < dst_dim; i ++)
+    for (INT i = 0; i < dst_dim; i ++)
     {
         results_analytic[i] = function (dst_lat[i], dst_lon[i]);
     }
@@ -377,7 +377,7 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
     m2lat->Matrix_vector_multiple (results_order2_discrete_lat, dst_dim, discrete_partial_lat, src_dim);
     m2lon->Matrix_vector_multiple (results_order2_discrete_lon, dst_dim, discrete_partial_lon, src_dim);
 
-    for (UINT i = 0; i < dst_dim; i ++)
+    for (INT i = 0; i < dst_dim; i ++)
     {
         if (dst_mask[i] == 0)
         {
@@ -389,7 +389,163 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
             results_order2_discrete_lon[i] = 0.0;
         }
     }
-    for (UINT i = 0; i < dst_dim; i ++)
+    double rmsd_order1 = 0.0;               // root mean square deviation
+    double rmsd_order2_analytic = 0.0;
+    double rmsd_order2_discrete = 0.0;
+    for (INT i = 0; i < dst_dim; i ++)
+    {
+        results_order2_analytic[i] = results_order1[i] + results_order2_analytic_lat[i] + results_order2_analytic_lon[i];
+        results_order2_discrete[i] = results_order1[i] + results_order2_discrete_lat[i] + results_order2_discrete_lon[i];
+        results_order1_rerrors[i] = results_order1[i] - results_analytic[i];
+        results_order2_analytic_rerrors[i] = results_order2_analytic[i] - results_analytic[i];
+        results_order2_discrete_rerrors[i] = results_order2_discrete[i] - results_analytic[i];
+        if (results_analytic[i] > 1e-30 || results_analytic[i] < - 1e-30)
+        {
+            results_order1_rerrors[i] /= results_analytic[i];
+            results_order2_analytic_rerrors[i] /= results_analytic[i];
+            results_order2_discrete_rerrors[i] /= results_analytic[i];
+        }
+        else
+        {
+            if (results_order1_rerrors[i] > 1e-30 || results_order1_rerrors[i] < - 1e-30)
+                results_order1_rerrors[i] = 1.0;
+            else
+                results_order1_rerrors[i] = 0.0;
+
+            if (results_order2_analytic_rerrors[i] > 1e-30 || results_order2_analytic_rerrors[i] < - 1e-30)
+                results_order2_analytic_rerrors[i] = 1.0;
+            else
+                results_order2_analytic_rerrors[i] = 0.0;
+
+            if (results_order2_discrete_rerrors[i] > 1e-30 || results_order2_discrete_rerrors[i] < - 1e-30)
+                results_order2_discrete_rerrors[i] = 1.0;
+            else
+                results_order2_discrete_rerrors[i] = 0.0;
+        }
+        rmsd_order1 += results_order1_rerrors[i] * results_order1_rerrors[i];
+        rmsd_order2_analytic += results_order2_analytic_rerrors[i] * results_order2_analytic_rerrors[i];
+        rmsd_order2_discrete += results_order2_discrete_rerrors[i] * results_order2_discrete_rerrors[i];
+
+        printf ("%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t%5.8f\t\t%5.8f\t\t%5.8f\n", results_analytic[i], results_order1[i], results_order2_analytic[i], results_order2_discrete[i], results_order1_rerrors[i], results_order2_analytic_rerrors[i], results_order2_discrete_rerrors[i]);
+    }
+    rmsd_order1 = sqrt (rmsd_order1 / dst_dim);
+    rmsd_order2_analytic = sqrt (rmsd_order2_analytic / dst_dim);
+    rmsd_order2_discrete = sqrt (rmsd_order2_discrete / dst_dim);
+    printf ("rmsd_order1: %f\n", rmsd_order1);
+    printf ("rmsd_order2_analytic: %f\n", rmsd_order2_analytic);
+    printf ("rmsd_order2_discrete: %f\n", rmsd_order2_discrete);
+    //return;
+    delete [] analytic_function;
+    delete [] analytic_partial_lat;
+    delete [] analytic_partial_lon;
+    delete [] discrete_partial_lat;
+    delete [] discrete_partial_lon;
+    delete [] results_order1;
+    delete [] results_order1_rerrors;
+    delete [] results_order2_analytic;
+    delete [] results_order2_analytic_rerrors;
+    delete [] results_order2_analytic_lat;
+    delete [] results_order2_analytic_lon;
+    delete [] results_order2_discrete;
+    delete [] results_order2_discrete_rerrors;
+    delete [] results_order2_discrete_lat;
+    delete [] results_order2_discrete_lon;
+}
+
+// note: temp use; we will export final matrix to files
+void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double, double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon, int * dst_mask, CDF_INT dst_nlat, CDF_INT dst_nlon)
+{
+    //printf ("Test_final_results\n");
+    printf ("Analytic\t\tOrder1\t\tOrder2_analytic\t\tOrder2_discrete\n");
+    INT size = lat_dim * lon_dim;
+    INT src_dim = m1->Get_col_dim ();
+    INT dst_dim = m1->Get_row_dim ();
+    assert (size == src_dim);
+    //partial_lat->print ();
+    //partial_lon->print ();
+    //m1->print ();
+    //m2lat->print ();
+    //m2lon->print ();
+    double * analytic_function = new double [src_dim];
+    double * analytic_partial_lat = new double [src_dim];
+    double * analytic_partial_lon = new double [src_dim];
+    double * discrete_partial_lat = new double [src_dim];
+    double * discrete_partial_lon = new double [src_dim];
+    double * results_analytic = new double [dst_dim];
+    double * results_order1 = new double [dst_dim];
+    double * results_order1_rerrors = new double [dst_dim];
+    double * results_order2_analytic = new double [dst_dim];
+    double * results_order2_analytic_rerrors = new double [dst_dim];
+    double * results_order2_analytic_lat = new double [dst_dim];
+    double * results_order2_analytic_lon = new double [dst_dim];
+    double * results_order2_discrete = new double [dst_dim];
+    double * results_order2_discrete_rerrors = new double [dst_dim];
+    double * results_order2_discrete_lat = new double [dst_dim];
+    double * results_order2_discrete_lon = new double [dst_dim];
+
+    assert (analytic_function != (double *) 0);
+    assert (analytic_partial_lat != (double *) 0);
+    assert (analytic_partial_lon != (double *) 0);
+    assert (discrete_partial_lat != (double *) 0);
+    assert (discrete_partial_lon != (double *) 0);
+    assert (results_analytic != (double *) 0);
+    assert (results_order1 != (double *) 0);
+    assert (results_order1_rerrors != (double *) 0);
+    assert (results_order2_analytic != (double *) 0);
+    assert (results_order2_analytic_rerrors != (double *) 0);
+    assert (results_order2_analytic_lat != (double *) 0);
+    assert (results_order2_analytic_lon != (double *) 0);
+    assert (results_order2_discrete != (double *) 0);
+    assert (results_order2_discrete_rerrors != (double *) 0);
+    assert (results_order2_discrete_lat != (double *) 0);
+    assert (results_order2_discrete_lon != (double *) 0);
+    
+    double dlat = FULL_LONGITUDE / 2 / lat_dim / 2;
+    double dlon = FULL_LONGITUDE / lon_dim / 2;
+    printf ("dlat: %f\n", dlat);
+    printf ("dlon: %f\n", dlon);
+    for (INT i = 0; i < src_dim; i ++)
+    {
+        analytic_function[i] = function (coord_lat[i], coord_lon[i], dlat, dlon);
+        analytic_partial_lat[i] = partial_lat_function (coord_lat[i], coord_lon[i]);
+        analytic_partial_lon[i] = partial_lon_function (coord_lat[i], coord_lon[i]);
+    }
+
+    dlat = FULL_LONGITUDE / 2 / dst_nlat / 2;
+    dlon = FULL_LONGITUDE / dst_nlon / 2;
+    printf ("dlat: %f\n", dlat);
+    printf ("dlon: %f\n", dlon);
+    for (INT i = 0; i < dst_dim; i ++)
+    {
+        results_analytic[i] = function (dst_lat[i], dst_lon[i], dlat, dlon);
+    }
+    // use grad matrix to calculate discrete grad
+    partial_lat->Matrix_vector_multiple (discrete_partial_lat, src_dim, analytic_function, src_dim);
+    partial_lon->Matrix_vector_multiple (discrete_partial_lon, src_dim, analytic_function, src_dim);
+
+    // use remap matrix to calculate field value
+    m1->Matrix_vector_multiple (results_order1, dst_dim, analytic_function, src_dim);
+    m2lat->Matrix_vector_multiple (results_order2_analytic_lat, dst_dim, analytic_partial_lat, src_dim);
+    m2lon->Matrix_vector_multiple (results_order2_analytic_lon, dst_dim, analytic_partial_lon, src_dim);
+    m2lat->Matrix_vector_multiple (results_order2_discrete_lat, dst_dim, discrete_partial_lat, src_dim);
+    m2lon->Matrix_vector_multiple (results_order2_discrete_lon, dst_dim, discrete_partial_lon, src_dim);
+
+    for (INT i = 0; i < dst_dim; i ++)
+    {
+        if (dst_mask[i] == 0)
+        {
+            results_analytic[i] = 0.0;
+            results_order1[i] = 0.0;
+            results_order2_analytic_lat[i] = 0.0;
+            results_order2_analytic_lon[i] = 0.0;
+            results_order2_discrete_lat[i] = 0.0;
+            results_order2_discrete_lon[i] = 0.0;
+        }
+    }
+    double rmsd_order1 = 0.0;               // root mean square deviation
+    double rmsd_order2_analytic = 0.0;
+    double rmsd_order2_discrete = 0.0;
+    for (INT i = 0; i < dst_dim; i ++)
     {
         results_order2_analytic[i] = results_order1[i] + results_order2_analytic_lat[i] + results_order2_analytic_lon[i];
         results_order2_discrete[i] = results_order1[i] + results_order2_discrete_lat[i] + results_order2_discrete_lon[i];
@@ -404,23 +560,33 @@ void grad_latlon::Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, S
         }
         else
         {
-            if (results_order1_rerrors[i] > 1e-30)
+            if (results_order1_rerrors[i] > 1e-30 || results_order1_rerrors[i] < - 1e-30)
                 results_order1_rerrors[i] = 1.0;
             else
                 results_order1_rerrors[i] = 0.0;
 
-            if (results_order2_analytic_rerrors[i] > 1e-30)
+            if (results_order2_analytic_rerrors[i] > 1e-30 || results_order2_analytic_rerrors[i] < - 1e-30)
                 results_order2_analytic_rerrors[i] = 1.0;
             else
                 results_order2_analytic_rerrors[i] = 0.0;
 
-            if (results_order2_discrete_rerrors[i] > 1e-30)
+            if (results_order2_discrete_rerrors[i] > 1e-30 || results_order2_discrete_rerrors[i] < - 1e-30)
                 results_order2_discrete_rerrors[i] = 1.0;
             else
                 results_order2_discrete_rerrors[i] = 0.0;
         }
+        rmsd_order1 += results_order1_rerrors[i] * results_order1_rerrors[i];
+        rmsd_order2_analytic += results_order2_analytic_rerrors[i] * results_order2_analytic_rerrors[i];
+        rmsd_order2_discrete += results_order2_discrete_rerrors[i] * results_order2_discrete_rerrors[i];
+
         printf ("%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t\t%5.8f\t\t%5.8f\t\t%5.8f\t\t%5.8f\n", results_analytic[i], results_order1[i], results_order2_analytic[i], results_order2_discrete[i], results_order1_rerrors[i], results_order2_analytic_rerrors[i], results_order2_discrete_rerrors[i]);
     }
+    rmsd_order1 = sqrt (rmsd_order1 / dst_dim);
+    rmsd_order2_analytic = sqrt (rmsd_order2_analytic / dst_dim);
+    rmsd_order2_discrete = sqrt (rmsd_order2_discrete / dst_dim);
+    printf ("rmsd_order1: %f\n", rmsd_order1);
+    printf ("rmsd_order2_analytic: %f\n", rmsd_order2_analytic);
+    printf ("rmsd_order2_discrete: %f\n", rmsd_order2_discrete);
     //return;
     delete [] analytic_function;
     delete [] analytic_partial_lat;

@@ -46,66 +46,66 @@ IO_netCDF::IO_netCDF (int convention, int token)
     //printf ("DOUBLE: %d\n", DOUBLE);
     Prep prep_units = new _Prep ("units");
     dim_array[0] = this->Get_dim_by_gname ("src_rank");
-    this->Add_new_var (new _Var ("src_grid_dims", "src_dims", 1, dim_array, INT));
+    this->Add_new_var (new _Var ("src_grid_dims", "src_dims", 1, dim_array, INT_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_rank");
-    this->Add_new_var (new _Var ("dst_grid_dims", "dst_dims", 1, dim_array, INT));
+    this->Add_new_var (new _Var ("dst_grid_dims", "dst_dims", 1, dim_array, INT_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("src_size");
-    this->Add_new_var (new _Var ("src_grid_center_lat", "src_center_lat", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("src_grid_center_lat", "src_center_lat", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_size");
-    this->Add_new_var (new _Var ("dst_grid_center_lat", "dst_center_lat", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("dst_grid_center_lat", "dst_center_lat", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("src_size");
-    this->Add_new_var (new _Var ("src_grid_center_lon", "src_center_lon", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("src_grid_center_lon", "src_center_lon", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_size");
-    this->Add_new_var (new _Var ("dst_grid_center_lon", "dst_center_lon", 1, dim_array, 1, &prep_units, DOUBLE));
-
-    dim_array[0] = this->Get_dim_by_gname ("src_size");
-    dim_array[1] = this->Get_dim_by_gname ("src_corner_size");
-    this->Add_new_var (new _Var ("src_grid_corner_lat", "src_corner_lat", 2, dim_array, 1, &prep_units, DOUBLE));
-
-    dim_array[0] = this->Get_dim_by_gname ("dst_size");
-    dim_array[1] = this->Get_dim_by_gname ("dst_corner_size");
-    this->Add_new_var (new _Var ("dst_grid_corner_lat", "dst_corner_lat", 2, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("dst_grid_center_lon", "dst_center_lon", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("src_size");
     dim_array[1] = this->Get_dim_by_gname ("src_corner_size");
-    this->Add_new_var (new _Var ("src_grid_corner_lon", "src_corner_lon", 2, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("src_grid_corner_lat", "src_corner_lat", 2, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_size");
     dim_array[1] = this->Get_dim_by_gname ("dst_corner_size");
-    this->Add_new_var (new _Var ("dst_grid_corner_lon", "dst_corner_lon", 2, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("dst_grid_corner_lat", "dst_corner_lat", 2, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("src_size");
-    this->Add_new_var (new _Var ("src_grid_imask", "src_mask", 1, dim_array, 1, &prep_units, INT));
+    dim_array[1] = this->Get_dim_by_gname ("src_corner_size");
+    this->Add_new_var (new _Var ("src_grid_corner_lon", "src_corner_lon", 2, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_size");
-    this->Add_new_var (new _Var ("dst_grid_imask", "dst_mask", 1, dim_array, 1, &prep_units, INT));
+    dim_array[1] = this->Get_dim_by_gname ("dst_corner_size");
+    this->Add_new_var (new _Var ("dst_grid_corner_lon", "dst_corner_lon", 2, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("src_size");
-    this->Add_new_var (new _Var ("src_grid_area", "src_area", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("src_grid_imask", "src_mask", 1, dim_array, 1, &prep_units, INT_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_size");
-    this->Add_new_var (new _Var ("dst_grid_area", "dst_area", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("dst_grid_imask", "dst_mask", 1, dim_array, 1, &prep_units, INT_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("src_size");
-    this->Add_new_var (new _Var ("src_grid_frac", "src_frac", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("src_grid_area", "src_area", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("dst_size");
-    this->Add_new_var (new _Var ("dst_grid_frac", "dst_frac", 1, dim_array, 1, &prep_units, DOUBLE));
+    this->Add_new_var (new _Var ("dst_grid_area", "dst_area", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
+
+    dim_array[0] = this->Get_dim_by_gname ("src_size");
+    this->Add_new_var (new _Var ("src_grid_frac", "src_frac", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
+
+    dim_array[0] = this->Get_dim_by_gname ("dst_size");
+    this->Add_new_var (new _Var ("dst_grid_frac", "dst_frac", 1, dim_array, 1, &prep_units, DOUBLE_TYPE));
 
     dim_array[0] = this->Get_dim_by_gname ("num_links");
-    this->Add_new_var (new _Var ("src_address", "src_address", 1, dim_array, INT, CHANGE_DATA, TODO));
+    this->Add_new_var (new _Var ("src_address", "src_address", 1, dim_array, INT_TYPE, CHANGE_DATA, TODO));
 
     dim_array[0] = this->Get_dim_by_gname ("num_links");
-    this->Add_new_var (new _Var ("dst_address", "dst_address", 1, dim_array, INT, CHANGE_DATA, TODO));
+    this->Add_new_var (new _Var ("dst_address", "dst_address", 1, dim_array, INT_TYPE, CHANGE_DATA, TODO));
 
     dim_array[0] = this->Get_dim_by_gname ("num_links");
     dim_array[1] = this->Get_dim_by_gname ("num_wgts");
-    this->Add_new_var (new _Var ("remap_matrix", "remap_matrix", 2, dim_array, DOUBLE, CHANGE_DATA, TODO));
+    this->Add_new_var (new _Var ("remap_matrix", "remap_matrix", 2, dim_array, DOUBLE_TYPE, CHANGE_DATA, TODO));
 
     // add global preps
     this->Add_new_global_prep (new _Prep ("title"));
@@ -359,7 +359,7 @@ void IO_netCDF::Special_case ()
         var = var_set[i];
         if (strcmp (var->gname, "grid_mask") == 0)
         {
-            if (var->type == INT)
+            if (var->type == INT_TYPE)
                 continue;
             else
             {
@@ -368,7 +368,7 @@ void IO_netCDF::Special_case ()
                 float * fmask = (float *) var->data;
                 for (int j = 0; j < size; j ++)
                     imask[j] = (fmask[j] > 0.5) ? 1 : 0;
-                var->type = INT;
+                var->type = INT_TYPE;
                 delete var->data;
                 var->data = imask;
             }
@@ -377,7 +377,7 @@ void IO_netCDF::Special_case ()
                  strcmp (var->gname, "grid_center_lon") == 0 ||
                  strcmp (var->gname, "physical_variable") == 0)
         {
-            if (var->type == DOUBLE)
+            if (var->type == DOUBLE_TYPE)
                 continue;
             else
             {
@@ -386,7 +386,7 @@ void IO_netCDF::Special_case ()
                 float * fcenter = (float *) var->data;
                 for (int j = 0; j < size; j ++)
                     dcenter[j] = (double) fcenter[j];
-                var->type = DOUBLE;
+                var->type = DOUBLE_TYPE;
                 delete var->data;
                 var->data = dcenter;
             }
@@ -479,21 +479,21 @@ void IO_netCDF::Read_file (char * netcdf_file)
         }
         if (var->data != 0)
             delete var->data;
-        if (var->type == INT)
+        if (var->type == INT_TYPE)
         {
             int * tmp = new int [Calculate_all_dims_of_var (var)];
             NC_CHECK (nc_get_var_int (ncid, varid, tmp));
             var->data = tmp;
             //printf ("ID %d: %d\n", i, ((int *)var->data)[0]);
         }
-        else if (var->type == FLOAT)
+        else if (var->type == FLOAT_TYPE)
         {
             float * tmp = new float [Calculate_all_dims_of_var (var)];
             NC_CHECK (nc_get_var_float (ncid, varid, tmp));
             var->data = tmp;
             //printf ("ID %d: %3.6f\n", i, ((float *)var->data)[0]);
         }
-        else if (var->type == DOUBLE)
+        else if (var->type == DOUBLE_TYPE)
         {
             double * tmp = new double [Calculate_all_dims_of_var (var)];
             NC_CHECK (nc_get_var_double (ncid, varid, tmp));
@@ -610,7 +610,7 @@ void IO_netCDF::Modify_dim_name (const char * gname, const char * new_name)
     dim->action = KEEP;
 }
 
-void IO_netCDF::Modify_dim_data (const char * gname, UINT new_data)
+void IO_netCDF::Modify_dim_data (const char * gname, CDF_INT new_data)
 {
     Dim dim = Get_dim_by_gname (gname);
     dim->data = new_data;
@@ -637,11 +637,11 @@ void IO_netCDF::Modify_var_data (const char * gname, const void * new_data)
     assert (Check_dimlist_of_var (var));
     delete var->data;
     int var_all_dims = Calculate_all_dims_of_var (var);
-    if (var->type == INT)
+    if (var->type == INT_TYPE)
         var_all_dims *= sizeof (int);
-    else if (var->type == FLOAT)
+    else if (var->type == FLOAT_TYPE)
         var_all_dims *= sizeof (float);
-    else if (var->type == DOUBLE)
+    else if (var->type == DOUBLE_TYPE)
         var_all_dims *= sizeof (double);
     var->data = new char [var_all_dims];
     // make sure memory allocation success
@@ -657,7 +657,7 @@ void IO_netCDF::Modify_var_prep (const char * gname, const char * key, const cha
 {
     Var var = Get_var_by_gname (gname);
     int var_all_dims = Calculate_all_dims_of_var (var);
-    assert (var->type == DOUBLE || var->type == FLOAT);
+    assert (var->type == DOUBLE_TYPE || var->type == FLOAT_TYPE);
     assert (strcmp (var->prep_list[0]->name, key) == 0);
     assert (strcmp (key, "units") == 0);
 
@@ -729,11 +729,11 @@ void IO_netCDF::Write_file (char * netcdf_file)
         {
             for (int j = 0; j < var->dim_size; j ++)
                 dim_array[j] = dimid [ Get_dimID_by_name (var->dim_list[j]->name) ];
-            if (var->type == INT)
+            if (var->type == INT_TYPE)
                 vartype = NC_INT;
-            else if (var->type == FLOAT)
+            else if (var->type == FLOAT_TYPE)
                 vartype = NC_FLOAT;
-            else if (var->type == DOUBLE)
+            else if (var->type == DOUBLE_TYPE)
                 vartype = NC_DOUBLE;
             NC_CHECK (nc_def_var (ncid, var->gname, vartype, var->dim_size, dim_array, &(varid[i])));
 
@@ -745,37 +745,37 @@ void IO_netCDF::Write_file (char * netcdf_file)
                         continue;
                     if (strcmp (prep->info, "_FillValue") == 0 || strcmp (prep->info, "missing_value") == 0)
                     {
-                        if (var->type == NC_INT)
+                        if (var->type == INT_TYPE)
                         {
                             sscanf (prep->info, "%d", &i_value);
                             NC_CHECK (nc_put_att_int (ncid, varid[i], prep->name, NC_INT, 1, &i_value));
                         }
-                        else if (var->type == NC_FLOAT)
+                        else if (var->type == FLOAT_TYPE)
                         {
                             sscanf (prep->info, "%f", &f_value);
                             NC_CHECK (nc_put_att_float (ncid, varid[i], prep->name, NC_FLOAT, 1, &f_value));
                         }
-                        else if (var->type == NC_DOUBLE)
+                        else if (var->type == DOUBLE_TYPE)
                         {
                             sscanf (prep->info, "%lf", &d_value);
                             NC_CHECK (nc_put_att_double (ncid, varid[i], prep->name, NC_DOUBLE, 1, &d_value));
                         }
                     }
-                    if (prep->type == TEXT)
+                    if (prep->type == TEXT_TYPE)
                     {
                         NC_CHECK (nc_put_att_text (ncid, varid[i], prep->name, strlen (prep->info), prep->info));
                     }
-                    else if (prep->type == INT)
+                    else if (prep->type == INT_TYPE)
                     {
                         sscanf (prep->info, "%d", &i_value);
                         NC_CHECK (nc_put_att_int (ncid, varid[i], prep->name, NC_INT, 1, &i_value));
                     }
-                    else if (prep->type == FLOAT)
+                    else if (prep->type == FLOAT_TYPE)
                     {
                         sscanf (prep->info, "%f", &f_value);
                         NC_CHECK (nc_put_att_float (ncid, varid[i], prep->name, NC_FLOAT, 1, &f_value));
                     }
-                    else if (prep->type == DOUBLE)
+                    else if (prep->type == DOUBLE_TYPE)
                     {
                         sscanf (prep->info, "%lf", &d_value);
                         NC_CHECK (nc_put_att_double (ncid, varid[i], prep->name, NC_DOUBLE, 1, &d_value));
@@ -790,22 +790,22 @@ void IO_netCDF::Write_file (char * netcdf_file)
         prep = global_prep[i];
         if (prep->action != KEEP)
             continue;
-        if (prep->type == TEXT)
+        if (prep->type == TEXT_TYPE)
         {
             NC_CHECK (nc_put_att_text (ncid, NC_GLOBAL, prep->name, strlen (prep->info), prep->info));
             printf ("new global attribute!\n");
         }
-        else if (prep->type == INT)
+        else if (prep->type == INT_TYPE)
         {
             sscanf (prep->info, "%d", &i_value);
             NC_CHECK (nc_put_att_int (ncid, NC_GLOBAL, prep->name, NC_INT, 1, &i_value));
         }
-        else if (prep->type == FLOAT)
+        else if (prep->type == FLOAT_TYPE)
         {
             sscanf (prep->info, "%f", &f_value);
             NC_CHECK (nc_put_att_float (ncid, NC_GLOBAL, prep->name, NC_FLOAT, 1, &f_value));
         }
-        else if (prep->type == DOUBLE)
+        else if (prep->type == DOUBLE_TYPE)
         {
             sscanf (prep->info, "%lf", &d_value);
             NC_CHECK (nc_put_att_double (ncid, NC_GLOBAL, prep->name, NC_DOUBLE, 1, &d_value));
@@ -822,15 +822,15 @@ void IO_netCDF::Write_file (char * netcdf_file)
         if (var->action == KEEP)
         {
             //NC_CHECK (nc_inq_varid(ncid, var->name, &varid));
-            if (var->type == INT)
+            if (var->type == INT_TYPE)
             {
                 NC_CHECK (nc_put_var_int (ncid, varid[i], (int *)var->data));
             }
-            else if (var->type == FLOAT)
+            else if (var->type == FLOAT_TYPE)
             {
                 NC_CHECK (nc_put_var_float (ncid, varid[i], (float *)var->data));
             }
-            else if (var->type == DOUBLE)
+            else if (var->type == DOUBLE_TYPE)
             {
                 NC_CHECK (nc_put_var_double (ncid, varid[i], (double *)var->data));
             }

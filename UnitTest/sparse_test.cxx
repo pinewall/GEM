@@ -42,8 +42,8 @@ int main()
     test->Print ();
 
     /* Case2: from array */
-    UINT row_list[7];
-    UINT col_list[7];
+    INT row_list[7];
+    INT col_list[7];
     double value_list[7];
     for (int i = 0; i < 7; i ++)
     {

@@ -14,12 +14,12 @@ int main(int argc, char ** argv)
     IO_netCDF * cdf = new IO_netCDF (argv[3]);
     cdf->Read_file (argv[1]);
 
-    UINT src_grid_size = cdf->Get_dim_by_gname ("src_size")->data;
-    UINT dst_grid_size = cdf->Get_dim_by_gname ("dst_size")->data;
+    CDF_INT src_grid_size = cdf->Get_dim_by_gname ("src_size")->data;
+    CDF_INT dst_grid_size = cdf->Get_dim_by_gname ("dst_size")->data;
     Dim dim_num_links = cdf->Get_dim_by_gname ("num_links");
-    UINT num_links = dim_num_links->data;
+    CDF_INT num_links = dim_num_links->data;
     Dim dim_num_wgts = cdf->Get_dim_by_gname ("num_wgts");
-    UINT num_wgts = dim_num_wgts->data;
+    CDF_INT num_wgts = dim_num_wgts->data;
 
     Var center_lat = cdf->Get_var_by_gname ("src_center_lat");
     Var center_lon = cdf->Get_var_by_gname ("src_center_lon");
@@ -31,8 +31,8 @@ int main(int argc, char ** argv)
     assert (center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    UINT lon_dim = ((UINT *) grid_dims->data)[0];
-    UINT lat_dim = ((UINT *) grid_dims->data)[1];
+    int lon_dim = ((int *) grid_dims->data)[0];
+    int lat_dim = ((int *) grid_dims->data)[1];
     //printf ("lat_dim = %d\n", lat_dim);
     //printf ("lon_dim = %d\n", lon_dim);
 
@@ -51,16 +51,16 @@ int main(int argc, char ** argv)
             dst_lon[i] = cdf_dst_lon[i] * deg2rad;
         }
     }
-    UINT * src_address_value = (UINT *) src_address->data;
-    UINT * dst_address_value = (UINT *) dst_address->data;
+    int * src_address_value = (int *) src_address->data;
+    int * dst_address_value = (int *) dst_address->data;
     
     assert (center_lat_value != (double *) 0);
     assert (center_lon_value != (double *) 0);
-    assert (src_address_value != (UINT *) 0);
-    assert (dst_address_value != (UINT *) 0);
+    assert (src_address_value != (int *) 0);
+    assert (dst_address_value != (int *) 0);
 
-    UINT * src_address_cvalue = new UINT [num_links];
-    UINT * dst_address_cvalue = new UINT [num_links];
+    int * src_address_cvalue = new int [num_links];
+    int * dst_address_cvalue = new int [num_links];
     for (int i = 0; i < num_links; i ++)
     {
         src_address_cvalue[i] = src_address_value[i] - 1;

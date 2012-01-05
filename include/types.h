@@ -3,10 +3,15 @@
 
 #define USE_32BITS
 #ifdef USE_64BITS
-typedef unsigned long UINT;
+    typedef unsigned long CDF_INT;
+    typedef long INT;
 #endif
 #ifdef USE_32BITS
-typedef unsigned int UINT;
+    typedef int INT;
+    typedef unsigned int CDF_INT;
 #endif
+
+//#define USE_DEGREES
+#define USE_RADIANS
 
 #endif

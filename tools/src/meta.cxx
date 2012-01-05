@@ -96,11 +96,11 @@ int main (int argc, char ** argv)
         node->addElement (new XMLElement ("gname", var_name));
 
         if (var_type == NC_INT)
-            strcpy (str_tmp, "INT");
+            strcpy (str_tmp, "INT_TYPE");
         else if (var_type == NC_FLOAT)
-            strcpy (str_tmp, "FLOAT");
+            strcpy (str_tmp, "FLOAT_TYPE");
         else if (var_type == NC_DOUBLE)
-            strcpy (str_tmp, "DOUBLE");
+            strcpy (str_tmp, "DOUBLE_TYPE");
         node->addElement (new XMLElement ("type", str_tmp));
 
         sprintf (str_tmp, "%d", var_ndim);

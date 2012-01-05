@@ -13,7 +13,7 @@ const int NETCDF_ATTLEN = 8;
 
 typedef enum {DONE, TODO} State;
 typedef enum {KEEP, CHANGE_NAME, CHANGE_DATA, DESERT} Action;
-typedef enum {INT, FLOAT, DOUBLE, TEXT} Data_Type;
+typedef enum {INT_TYPE, FLOAT_TYPE, DOUBLE_TYPE, TEXT_TYPE} Data_Type;
 
 struct _Prep
 {
@@ -26,7 +26,7 @@ struct _Prep
     _Prep (char * _name) : action(KEEP), state(DONE)    {
         strcpy (name, _name);
         strcpy (info, "null");
-        type = TEXT;
+        type = TEXT_TYPE;
     }
 
     _Prep (char * _name, Data_Type _type) : action(KEEP), state(DONE)   {
@@ -41,7 +41,7 @@ struct _Prep
         type = _type;
     }
 
-    _Prep (char * _name, Action _action, State _state) : type(TEXT), action(_action), state(_state)     {
+    _Prep (char * _name, Action _action, State _state) : type(TEXT_TYPE), action(_action), state(_state)     {
         strcpy (name, _name);
         strcpy (info, "null");
     }
@@ -61,7 +61,7 @@ struct _Dim
 {
     char        name[NETCDF_STRLEN];
     char        gname[NETCDF_STRLEN];       // corresponding name in GEM, used for searching and locating
-    UINT        data;
+    CDF_INT     data;
     Action      action;
     State       state;
 
@@ -160,7 +160,7 @@ struct _Var
         prep_size = pvar->prep_size;
         for (int i = 0; i < prep_size; i ++)
         {
-            prep_list[i] = new _Prep ("null", "null", TEXT);
+            prep_list[i] = new _Prep ("null", "null", TEXT_TYPE);
             strcpy (prep_list[i]->name, pvar->prep_list[i]->name);
             strcpy (prep_list[i]->info, pvar->prep_list[i]->info);
             prep_list[i]->type = pvar->prep_list[i]->type;
@@ -203,9 +203,10 @@ class IO_netCDF
             else if (strcmp (string, "DESERT") == 0)        *ienum = DESERT;
             else if (strcmp (string, "DONE") == 0)          *ienum = DONE;
             else if (strcmp (string, "TODO") == 0)          *ienum = TODO;
-            else if (strcmp (string, "INT") == 0)           *ienum = INT;
-            else if (strcmp (string, "FLOAT") == 0)         *ienum = FLOAT;
-            else if (strcmp (string, "DOUBLE") == 0)        *ienum = DOUBLE;
+            else if (strcmp (string, "INT_TYPE") == 0)      *ienum = INT_TYPE;
+            else if (strcmp (string, "FLOAT_TYPE") == 0)    *ienum = FLOAT_TYPE;
+            else if (strcmp (string, "DOUBLE_TYPE") == 0)   *ienum = DOUBLE_TYPE;
+            else if (strcmp (string, "TEXT_TYPE") == 0)     *ienum = TEXT_TYPE;
             else                                            *ienum = -1;
         }
 
@@ -234,7 +235,7 @@ class IO_netCDF
         int Calculate_all_dims_of_var (Var var);
 
         void Modify_dim_name (const char * gname, const char * new_name);
-        void Modify_dim_data (const char * gname, UINT new_data);    // note2
+        void Modify_dim_data (const char * gname, CDF_INT new_data);    // note2
         void Modify_var_name (const char * gname, const char * new_name);
         void Modify_var_data (const char * gname, const void * new_data);
         void Modify_var_prep (const char * gname, const char * key, const char * new_value);  // used for change units, so new_data is not needed
