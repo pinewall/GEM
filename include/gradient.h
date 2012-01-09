@@ -40,7 +40,11 @@ class grad_latlon
         SparseMatrix * Get_grad_lon_matrix ();
 
         void Test_grad_latlon (double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double));
+        /* case 1: for analytical functions */
         void Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon, int * dst_mask);
+        /* case 2: for area-averaged analytical functions */
         void Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, double (* function)(double, double, double, double), double (* partial_lat_function)(double, double), double (* partial_lon_function)(double, double), double * dst_lat, double * dst_lon, int * dst_mask, CDF_INT dst_nlat, CDF_INT dst_nlon);
+        /* case 3: for analytical functions */
+        void Test_final_results (SparseMatrix * m1, SparseMatrix * m2lat, SparseMatrix * m2lon, const double * src_field_data, CDF_INT src_grid_size, const double * dst_field_data, CDF_INT dst_grid_size, double * dst_lat, double * dst_lon, int * dst_mask);
 };
 #endif

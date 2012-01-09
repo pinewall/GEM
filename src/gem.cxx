@@ -14,16 +14,16 @@ int main(int argc, char ** argv)
     IO_netCDF * cdf = new IO_netCDF (argv[3]);
     cdf->Read_file (argv[1]);
 
-    CDF_INT src_grid_size = cdf->Get_dim_by_gname ("src_size")->data;
-    CDF_INT dst_grid_size = cdf->Get_dim_by_gname ("dst_size")->data;
+    CDF_INT src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
+    CDF_INT dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
     Dim dim_num_links = cdf->Get_dim_by_gname ("num_links");
     CDF_INT num_links = dim_num_links->data;
     Dim dim_num_wgts = cdf->Get_dim_by_gname ("num_wgts");
     CDF_INT num_wgts = dim_num_wgts->data;
 
-    Var center_lat = cdf->Get_var_by_gname ("src_center_lat");
-    Var center_lon = cdf->Get_var_by_gname ("src_center_lon");
-    Var grid_dims = cdf->Get_var_by_gname ("src_dims");
+    Var center_lat = cdf->Get_var_by_gname ("src_grid_center_lat");
+    Var center_lon = cdf->Get_var_by_gname ("src_grid_center_lon");
+    Var grid_dims = cdf->Get_var_by_gname ("src_grid_dims");
     Var src_address = cdf->Get_var_by_gname ("src_address");
     Var dst_address = cdf->Get_var_by_gname ("dst_address");
     Var remap_matrix = cdf->Get_var_by_gname ("remap_matrix");
@@ -38,12 +38,12 @@ int main(int argc, char ** argv)
 
     double * center_lat_value = (double *) center_lat->data;
     double * center_lon_value = (double *) center_lon->data;
-    double * cdf_dst_lat = (double *) cdf->Get_var_by_gname ("dst_center_lat")->data;
-    double * cdf_dst_lon = (double *) cdf->Get_var_by_gname ("dst_center_lon")->data;
+    double * cdf_dst_lat = (double *) cdf->Get_var_by_gname ("dst_grid_center_lat")->data;
+    double * cdf_dst_lon = (double *) cdf->Get_var_by_gname ("dst_grid_center_lon")->data;
     double * dst_lat = new double [dst_grid_size];
     double * dst_lon = new double [dst_grid_size];
     double deg2rad = 3.14159265359 / 180;
-    if (strcmp (cdf->Get_var_by_gname ("dst_center_lat")->prep_list[0]->info, "degrees") == 0)
+    if (strcmp (cdf->Get_var_by_gname ("dst_grid_center_lat")->prep_list[0]->info, "degrees") == 0)
     {
         for (int i = 0; i < dst_grid_size; i ++)
         {

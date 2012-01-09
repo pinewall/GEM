@@ -124,9 +124,8 @@ double function_aa_spherical_harmonic_2_2 (double lat, double lon, double dlat, 
     /* function = 1/2 [ 1 + 1/3 (1 + cos2lat)*(1 - cos2dlat) ] * cos2lon * sin2dlon / dlon */
     double cos2lat = cos (2 * lat);
     double cos2lon = cos (2 * lon);
-    double result = 1 - cos (2 * dlat);
-    result *= (1 + cos2lat);
-    result /= 3;
+    double result = 1 - cos2lat*cos (2*dlat) - cos2lat/2 + cos (2*dlat)/2;
+    result /= -3;
     result += 1;
     result /= 2;
     result *= cos2lon;

@@ -18,7 +18,7 @@ vpath %.o mod
 OBJS=IO_netCDF.o SParseMatrix.o field.o gradient.o \
      toy_test.o sparse_test.o \
 	 unit_test.o gem.o \
-     xml_base.o meta.o cdfcopyer.o \
+     xml_base.o meta.o cdfcopyer.o remap.o units.o\
      xml_test.o
 
 %.cxx: %.h
@@ -31,6 +31,10 @@ lib:
 	make $(OBJS)
 
 # binaries or testers
+units: xml_base.o IO_netCDF.o units.o
+	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
+remap: remap.o
+	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 cdfcopyer: xml_base.o IO_netCDF.o cdfcopyer.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 meta: xml_base.o meta.o
@@ -47,6 +51,6 @@ sparse_test: SParseMatrix.o sparse_test.o
 	$(CC) $(NETCDF_LIB) $+ $(LIB) -o $@
 
 clean:
-	rm -f $(MODPATH)/*.o unit_test toy_test sparse_test
+	rm -f $(MODPATH)/*.o
 distclean:
 	rm -rf $(MODPATH) unit_test toy_test sparse_test

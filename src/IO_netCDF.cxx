@@ -162,9 +162,9 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
         else
             global_prep_size ++;
     }
-    printf ("<Constructor> dim_set_size: %d\n", dim_set_size);
-    printf ("<Constructor> var_set_size: %d\n", var_set_size);
-    printf ("<Constructor> global_prep_size: %d\n", global_prep_size);
+    //printf ("<Constructor> dim_set_size: %d\n", dim_set_size);
+    //printf ("<Constructor> var_set_size: %d\n", var_set_size);
+    //printf ("<Constructor> global_prep_size: %d\n", global_prep_size);
     // allocate
     dim_set = new Dim [dim_set_size];
     var_set = new Var [var_set_size];
@@ -259,7 +259,7 @@ IO_netCDF::IO_netCDF (const char * xml_meta)
         {
             global_prep[current_global_prep_size] = new _Prep (subnode->getElementText (), (Action) iaction, (State) istate);
             current_global_prep_size ++;
-            printf ("<Write_file>: %s <%d> <%d>\n", subnode->getElementText (), iaction, istate);
+            //printf ("<Write_file>: %s <%d> <%d>\n", subnode->getElementText (), iaction, istate);
         }
     }
 
@@ -352,12 +352,12 @@ void IO_netCDF::Special_case ()
     Dim dim;
     dim = Get_dim_by_gname ("grid_size");
     int size = dim->data;
-    printf ("Special_case:: grid_size: %d\n", size);
+    //printf ("Special_case:: grid_size: %d\n", size);
 
     for (int i = 0; i < var_set_size; i ++)
     {
         var = var_set[i];
-        if (strcmp (var->gname, "grid_mask") == 0)
+        if (strcmp (var->gname, "grid_imask") == 0)
         {
             if (var->type == INT_TYPE)
                 continue;
@@ -706,7 +706,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
     //NC_CHECK (nc_redef (ncid));
 
     // define dims
-    printf ("define dims\n");
+    //printf ("define dims\n");
     int dimcount = 0;
     for (int i = 0; i < dim_set_size; i ++)
     {
@@ -718,7 +718,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
         }
     }
     // define vars
-    printf ("define vars\n");
+    //printf ("define vars\n");
     int dim_array[NETCDF_DIMLEN];
     nc_type vartype = NC_INT;
     int varcount = 0;
@@ -784,7 +784,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
         }
     }
 
-    printf ("define global attributes\n");
+    //printf ("define global attributes\n");
     for (int i = 0; i < global_prep_size; i ++)
     {
         prep = global_prep[i];
@@ -793,7 +793,7 @@ void IO_netCDF::Write_file (char * netcdf_file)
         if (prep->type == TEXT_TYPE)
         {
             NC_CHECK (nc_put_att_text (ncid, NC_GLOBAL, prep->name, strlen (prep->info), prep->info));
-            printf ("new global attribute!\n");
+            //printf ("new global attribute!\n");
         }
         else if (prep->type == INT_TYPE)
         {
@@ -812,10 +812,10 @@ void IO_netCDF::Write_file (char * netcdf_file)
         }
     }
     NC_CHECK (nc_enddef (ncid));
-    printf ("exit define mode\n");
+    //printf ("exit define mode\n");
 
     // put vars
-    printf ("put vars\n");
+    //printf ("put vars\n");
     for (int i = 0; i < var_set_size; i ++)
     {
         var = var_set[i];
@@ -837,5 +837,5 @@ void IO_netCDF::Write_file (char * netcdf_file)
         }
     }
     NC_CHECK (nc_close (ncid));
-    printf ("close file\n");
+    //printf ("close file\n");
 }

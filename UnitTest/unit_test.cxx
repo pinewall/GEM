@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
     printf ("%s\n", src_grid_name);
     printf ("%s\n", dst_grid_name);
 
-    printf ("%s\n", argv[2]);
+    //printf ("%s\n", argv[2]);
 
     IO_netCDF * cdf = new IO_netCDF (argv[2]);
     //printf("after configure\n");
@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
     double rate = 1.0;
     if (strcmp (center_lat->prep_list[0]->info, "degrees") == 0)
         rate = 3.14159265359 / 180;
-    printf ("rate: %f\n", rate);
+    //printf ("rate: %f\n", rate);
     for (int i = 0; i < src_grid_size; i ++)
     {
         center_lat_cvalue[i] = center_lat_value[i] * rate;
@@ -84,7 +84,7 @@ int main(int argc, char ** argv)
     rate = 1.0;
     if (strcmp (cdf->Get_var_by_gname ("dst_grid_center_lat")->prep_list[0]->info, "degrees") == 0)
         rate = 3.14159265359 / 180;
-    printf ("rate: %f\n", rate);
+    //printf ("rate: %f\n", rate);
     for (int i = 0; i < dst_grid_size; i ++)
     {
         dst_clat[i] = dst_lat[i] * rate;
@@ -177,8 +177,34 @@ int main(int argc, char ** argv)
         grad->Test_final_results (m1, m2lat, m2lon, &function_aa_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_clat, dst_clon, dst_mask, dst_nlat, dst_nlon);
     else if (strcmp (argv[3], "Y16_32") == 0)
         grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, dst_clat, dst_clon, dst_mask);
+    else if (strcmp (argv[3], "realdata") == 0)
+    {
+        if (argc < 8)
+        {
+            printf ("readdata usage: ./unit_test remap.nc remap.xml realdata src-ncfile src-xmlfile dst-ncfile dst-xmlfile\n");
+            return -2;
+        }
+        else
+        {
+            CDF_INT src_grid_size, dst_grid_size;
+            double * src_field_data, * dst_field_data;
+            IO_netCDF * cdf_src_field = new IO_netCDF (argv[5]);
+            cdf_src_field->Read_file (argv[4]);
+            src_grid_size = cdf_src_field->Get_dim_by_gname ("grid_size")->data;
+            src_field_data = (double *) cdf_src_field->Get_var_by_gname ("physical_variable")->data;
+            
+            IO_netCDF * cdf_dst_field = new IO_netCDF (argv[7]);
+            cdf_dst_field->Read_file (argv[6]);
+            dst_grid_size = cdf_dst_field->Get_dim_by_gname ("grid_size")->data;
+            dst_field_data = (double *) cdf_dst_field->Get_var_by_gname ("physical_variable")->data;
+            
+            grad->Test_final_results (m1, m2lat, m2lon, src_field_data, src_grid_size, dst_field_data, dst_grid_size, dst_clat, dst_clon, dst_mask);
+            delete cdf_src_field;
+            delete cdf_dst_field;
+        }
+    }
     else
-        printf ("Un-supported test function!\nUse the following ones:\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
+        printf ("Un-supported test function!\nUse the following ones:\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n\trealdata file1 file2\n");
     delete dst_lat;
     delete dst_lon;
     return 0;

@@ -218,19 +218,19 @@ XMLElement::XMLElement (const char * xml_file)
 
         // read XML version
         fgets (line, XML_LINE, fp);                                     /* <?xml version="1.0"?> */
-        printf ("line: %s\n", line);
+        //printf ("line: %s\n", line);
         // read root
         scanNonLinedXMLElementName (elem_name, fp);
-        printf ("netcdf: %s\n", elem_name);
+        //printf ("netcdf: %s\n", elem_name);
         strcpy (element_name, elem_name);
         element_text[0] = '\0';
 
         // read dimensions
         scanNonLinedXMLElementName (elem_name, fp);                     /** dimension_list **/
-        printf ("dimension_list: %s\n", elem_name);
+        //printf ("dimension_list: %s\n", elem_name);
         scanLinedXMLElement (elem_name, elem_text, fp);                 /* ndim */
         sscanf (elem_text, "%d", &ndim);
-        printf ("number of dimensions is %d\n", ndim);
+        //printf ("number of dimensions is %d\n", ndim);
         this->addElement (new XMLElement ("dimension_list", ndim));
         node = this->getChildren ()[0];
         scanDimension (node, fp);                                       /* for each dimension; use scanLinedXMLElement */        
@@ -238,10 +238,10 @@ XMLElement::XMLElement (const char * xml_file)
 
         // read variables
         scanNonLinedXMLElementName (elem_name, fp);                     /** variable_list **/
-        printf ("variable_list: %s\n", elem_name);
+        //printf ("variable_list: %s\n", elem_name);
         scanLinedXMLElement (elem_name, elem_text, fp);                 /* nvar */
         sscanf (elem_text, "%d", &nvar);
-        printf ("number of variables is %d\n", nvar);
+        //printf ("number of variables is %d\n", nvar);
         this->addElement (new XMLElement ("variable_list", nvar));
         node = this->getChildren ()[1];
         scanVariable (node, fp);                                        /* for each variable; use scanLinedXMLElement and scanNonLinedXMLElementName */
@@ -249,10 +249,10 @@ XMLElement::XMLElement (const char * xml_file)
         
         // read global attributes
         scanNonLinedXMLElementName (elem_name, fp);                     /** global_attribute_list **/
-        printf ("global_attribute_list: %s\n", elem_name);
+        //printf ("global_attribute_list: %s\n", elem_name);
         scanLinedXMLElement (elem_name, elem_text, fp);                 /* natts */
         sscanf (elem_text, "%d", &natts);
-        printf ("number of global attributes is %d\n", natts);
+        //printf ("number of global attributes is %d\n", natts);
         this->addElement (new XMLElement ("global_attribute_list", natts));
         node = this->getChildren ()[2];
         scanAttribute (node, fp);                                       /* for each attribute; use scanLinedXMLElement and scanNonLinedXMLElementName */
@@ -260,7 +260,7 @@ XMLElement::XMLElement (const char * xml_file)
 
         // finish root
         scanNonLinedXMLElementName (elem_name, fp);
-        printf ("netcdf: %s\n", elem_name);
+        //printf ("netcdf: %s\n", elem_name);
         fclose (fp);
     }
 }
