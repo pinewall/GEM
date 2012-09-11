@@ -2,57 +2,62 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <debug.h>
 
-SparseMatrix::SparseMatrix (int _row_dim, int _col_dim)
+SparseMatrix::SparseMatrix (size_t _row_dim, size_t _col_dim)
 {
     row_dim = _row_dim;
     col_dim = _col_dim;
-    row_ptr = new int [row_dim + 1];
-    memset (row_ptr, 0, sizeof (int) * (row_dim + 1));
-    //col_ptr = new int [col_dim + 1];
-    alpha = 0.0001;               // type is double; note the declaration in header file
+    row_ptr = new size_t [row_dim + 1];
+    memset (row_ptr, 0, sizeof (size_t) * (row_dim + 1));
+    //col_ptr = new size_t [col_dim + 1];
+    alpha = 0.0001;               // type is _ValueType; note the declaration in header file
     increase = alpha * (row_dim * col_dim);
     increase = (increase > 4) ? (increase - increase % 4) : 4;
-    //printf ("SparseMatrix::increase = %d\n", increase);
+#ifdef SPARSEMATRIX_DEBUG
+    printf ("SparseMatrix::increase = %d\n", increase);
+#endif
     assert (increase > 0);
     buffer_size = increase;
     current_size = 0;
 
-    row_list = new int [buffer_size];
-    col_list = new int [buffer_size];
-    value_list = new double [buffer_size];
-    assert ((row_list != (int *) 0));
-    assert ((col_list != (int *) 0));
-    assert ((value_list != (double *) 0));
+    row_list = new size_t [buffer_size];
+    col_list = new size_t [buffer_size];
+    value_list = new _ValueType [buffer_size];
+    assert ((row_list != (size_t *) 0));
+    assert ((col_list != (size_t *) 0));
+    assert ((value_list != (_ValueType *) 0));
 }
 
-SparseMatrix::SparseMatrix (int _row_dim, int _col_dim, int _current_size, int * _row_list, int * _col_list, double * _value_list)
+SparseMatrix::SparseMatrix (size_t _row_dim, size_t _col_dim, size_t _current_size, size_t * _row_list, size_t * _col_list, _ValueType * _value_list)
 {
     row_dim = _row_dim;
     col_dim = _col_dim;
-    row_ptr = new int [row_dim + 1];
-    alpha = 0.0001;               // type is double; note the declaration in header file
+    row_ptr = new size_t [row_dim + 1];
+    alpha = 0.0001;               // type is _ValueType; note the declaration in header file
     increase = alpha * (row_dim * col_dim);
     increase = (increase > 4) ? (increase - increase % 4) : 4;
-    //printf ("SparseMatrix::increase = %d\n", increase);
+#ifdef SPARSEMATRIX_DEBUG
+    printf ("SparseMatrix::increase = %d\n", increase);
     assert (increase > 0);
+#endif
 
     current_size = _current_size;
     buffer_size = _current_size;
-    row_list = new int [buffer_size];
-    col_list = new int [buffer_size];
-    value_list = new double [buffer_size];
-    assert ((row_list != (int *) 0));
-    assert ((col_list != (int *) 0));
-    assert ((value_list != (double *) 0));
+    row_list = new size_t [buffer_size];
+    col_list = new size_t [buffer_size];
+    value_list = new _ValueType [buffer_size];
+    assert ((row_list != (size_t *) 0));
+    assert ((col_list != (size_t *) 0));
+    assert ((value_list != (_ValueType *) 0));
 
-    memcpy (row_list, _row_list, sizeof (int) * buffer_size);
-    memcpy (col_list, _col_list, sizeof (int) * buffer_size);
-    memcpy (value_list, _value_list, sizeof (double) * buffer_size);
+    memcpy (row_list, _row_list, sizeof (size_t) * buffer_size);
+    memcpy (col_list, _col_list, sizeof (size_t) * buffer_size);
+    memcpy (value_list, _value_list, sizeof (_ValueType) * buffer_size);
 #ifdef OLD_VERSION
-    int current_row = 0;
+    size_t current_row = 0;
     row_ptr [current_row] = 0;
-    for (int i = 0; i < current_size; i ++)
+    for (size_t i = 0; i < current_size; i ++)
     {
         if (row_list[i] == current_row)
         {
@@ -62,7 +67,7 @@ SparseMatrix::SparseMatrix (int _row_dim, int _col_dim, int _current_size, int *
         else
         {
             // e.g. 0003
-            for (int j = current_row + 1; j < row_list[i]; j ++)
+            for (size_t j = current_row + 1; j < row_list[i]; j ++)
             {
                 //printf ("j belongs %d to %d\n", current_row + 1, row_list[i]);
                 row_ptr[j] = row_ptr[current_row];
@@ -72,7 +77,7 @@ SparseMatrix::SparseMatrix (int _row_dim, int _col_dim, int _current_size, int *
         }
     }
     if (current_row < row_dim - 1)
-        for (int i = current_row + 1; i < row_dim; i ++)
+        for (size_t i = current_row + 1; i < row_dim; i ++)
             row_ptr[i] = current_size;
     row_ptr[row_dim] = current_size;
 #endif
@@ -83,18 +88,18 @@ SparseMatrix::SparseMatrix (SparseMatrix * copyer)
 {
     row_dim = copyer->row_dim;
     col_dim = copyer->col_dim;
-    row_ptr = new int [row_dim + 1];
+    row_ptr = new size_t [row_dim + 1];
     alpha = copyer->alpha;
     increase = copyer->increase;
     buffer_size = copyer->buffer_size;
     current_size = copyer->current_size;
-    row_list = new int [buffer_size];
-    col_list = new int [buffer_size];
-    value_list = new double [buffer_size];
-    memcpy (row_ptr, copyer->row_ptr, (row_dim + 1) * sizeof (int));
-    memcpy (row_list, copyer->row_list, current_size * sizeof (int));
-    memcpy (col_list, copyer->col_list, current_size * sizeof (int));
-    memcpy (value_list, copyer->value_list, current_size * sizeof (double));
+    row_list = new size_t [buffer_size];
+    col_list = new size_t [buffer_size];
+    value_list = new _ValueType [buffer_size];
+    memcpy (row_ptr, copyer->row_ptr, (row_dim + 1) * sizeof (size_t));
+    memcpy (row_list, copyer->row_list, current_size * sizeof (size_t));
+    memcpy (col_list, copyer->col_list, current_size * sizeof (size_t));
+    memcpy (value_list, copyer->value_list, current_size * sizeof (_ValueType));
 }
 
 SparseMatrix::~SparseMatrix()
@@ -106,7 +111,7 @@ SparseMatrix::~SparseMatrix()
 }
 
 // note: currently we do not support addition to existed place
-void SparseMatrix::Add_entry (int row, int col, double value)
+void SparseMatrix::Add_entry (size_t row, size_t col, _ValueType value)
 {
     if (current_size == buffer_size)
         Resize ();
@@ -120,9 +125,9 @@ void SparseMatrix::Add_entry (int row, int col, double value)
 void SparseMatrix::Complete_row_ptr ()
 {
     // TODO: complete row_ptr for matrix generated by Add_entry in order
-    int current_row = 0;
+    size_t current_row = 0;
     row_ptr [current_row] = 0;
-    for (int i = 0; i < current_size; i ++)
+    for (size_t i = 0; i < current_size; i ++)
     {
         if (row_list[i] == current_row)
         {
@@ -132,7 +137,7 @@ void SparseMatrix::Complete_row_ptr ()
         else
         {
             // e.g. 0003
-            for (int j = current_row + 1; j < row_list[i]; j ++)
+            for (size_t j = current_row + 1; j < row_list[i]; j ++)
             {
                 //printf ("j belongs %d to %d\n", current_row + 1, row_list[i]);
                 row_ptr[j] = row_ptr[current_row];
@@ -142,7 +147,7 @@ void SparseMatrix::Complete_row_ptr ()
         }
     }
     if (current_row < row_dim - 1)
-        for (int i = current_row + 1; i < row_dim; i ++)
+        for (size_t i = current_row + 1; i < row_dim; i ++)
             row_ptr[i] = current_size;
     row_ptr[row_dim] = current_size;
 }
@@ -151,12 +156,12 @@ void SparseMatrix::Resize ()
 {
     assert (increase > 0);
     buffer_size += increase;
-    int * tmp_row_list = new int [buffer_size];
-    int * tmp_col_list = new int [buffer_size];
-    double * tmp_value_list = new double [buffer_size];
-    memcpy (tmp_row_list, row_list, sizeof (int) * current_size);
-    memcpy (tmp_col_list, col_list, sizeof (int) * current_size);
-    memcpy (tmp_value_list, value_list, sizeof (double) * current_size);
+    size_t * tmp_row_list = new size_t [buffer_size];
+    size_t * tmp_col_list = new size_t [buffer_size];
+    _ValueType * tmp_value_list = new _ValueType [buffer_size];
+    memcpy (tmp_row_list, row_list, sizeof (size_t) * current_size);
+    memcpy (tmp_col_list, col_list, sizeof (size_t) * current_size);
+    memcpy (tmp_value_list, value_list, sizeof (_ValueType) * current_size);
     delete row_list;
     delete col_list;
     delete value_list;
@@ -167,12 +172,12 @@ void SparseMatrix::Resize ()
 
 void SparseMatrix::Trim ()
 {
-    int * tmp_row_list = new int [current_size];
-    int * tmp_col_list = new int [current_size];
-    double * tmp_value_list = new double [current_size];
-    memcpy (tmp_row_list, row_list, sizeof (int) * current_size);
-    memcpy (tmp_col_list, col_list, sizeof (int) * current_size);
-    memcpy (tmp_value_list, value_list, sizeof (double) * current_size);
+    size_t * tmp_row_list = new size_t [current_size];
+    size_t * tmp_col_list = new size_t [current_size];
+    _ValueType * tmp_value_list = new _ValueType [current_size];
+    memcpy (tmp_row_list, row_list, sizeof (size_t) * current_size);
+    memcpy (tmp_col_list, col_list, sizeof (size_t) * current_size);
+    memcpy (tmp_value_list, value_list, sizeof (_ValueType) * current_size);
     delete row_list;
     delete col_list;
     delete value_list;
@@ -184,35 +189,36 @@ void SparseMatrix::Trim ()
 
 SparseMatrix * SparseMatrix::Matrix_transpose ()
 {
-    // TODO
+#ifdef SPARSEMATRIX_DEBUG
     printf ("Matrix_transpose\n");
-    int * new_row_list = new int [current_size];
-    int * new_col_list = new int [current_size];
-    int * new_row_ptr = new int [col_dim + 1];
-    double * new_value_list = new double [current_size];
+#endif
+    size_t * new_row_list = new size_t [current_size];
+    size_t * new_col_list = new size_t [current_size];
+    size_t * new_row_ptr = new size_t [col_dim + 1];
+    _ValueType * new_value_list = new _ValueType [current_size];
 
     // calculate number of nonzero element in each column
-    int * temp = new int [col_dim];
-    //memset (temp, 0, sizeof (int) * col_dim);
-    for (int i = 0; i < col_dim; i ++)
+    size_t * temp = new size_t [col_dim];
+    //memset (temp, 0, sizeof (size_t) * col_dim);
+    for (size_t i = 0; i < col_dim; i ++)
         temp[i] = 0;
-    for (int i = 0; i < current_size; i ++)
+    for (size_t i = 0; i < current_size; i ++)
         temp[col_list[i]] ++;
 
     // new header of each old column
     new_row_ptr[0] = 0;
-    for (int i = 0; i < col_dim; i ++)
+    for (size_t i = 0; i < col_dim; i ++)
     {
-        printf ("temp[%d] = %d\n", i, temp[i]);
+        //printf ("temp[%d] = %d\n", i, temp[i]);
         new_row_ptr[i + 1] = new_row_ptr[i] + temp[i];
-        temp[i] = new_row_ptr[i];
+        //temp[i] = new_row_ptr[i];
     }
 
     // loop through old matrix
-    int new_id;
-    for (int i = 0; i < row_dim; i ++)
+    size_t new_id;
+    for (size_t i = 0; i < row_dim; i ++)
     {
-        for (int j = row_ptr[i]; j < row_ptr[i+1]; j ++)
+        for (size_t j = row_ptr[i]; j < row_ptr[i+1]; j ++)
         {
             new_id = temp[col_list[j]]++;
             new_row_list[new_id] = col_list[j];
@@ -222,7 +228,7 @@ SparseMatrix * SparseMatrix::Matrix_transpose ()
     }
 
     SparseMatrix * transposed = new SparseMatrix (col_dim, row_dim, current_size, new_row_list, new_col_list, new_value_list);
-    transposed->print();
+    //transposed->Prsize_t();
     delete new_row_list;
     delete new_col_list;
     delete new_row_ptr;
@@ -230,55 +236,147 @@ SparseMatrix * SparseMatrix::Matrix_transpose ()
     return transposed;
 }
 
+SparseMatrix * SparseMatrix::Matrix_scalar_multiple (_ValueType alpha)
+{
+#ifdef SPARSEMATRIX_DEBUG
+    printf ("Matrix_scalar_multiple\n");
+#endif
+    SparseMatrix * scalar = new SparseMatrix (this);
+    size_t size = scalar->current_size;
+    for (size_t i = 0; i < size; i ++)
+        scalar->value_list[i] *= alpha;
+    return scalar;
+}
+
 SparseMatrix * SparseMatrix::Matrix_add (SparseMatrix * adder)
 {
-    // TODO
+#ifdef SPARSEMATRIX_DEBUG
     printf ("Matrix_add\n");
+#endif
     assert (row_dim == adder->row_dim);
     assert (col_dim == adder->col_dim);
-    return (SparseMatrix *) 0;
+    SparseMatrix * sum = new SparseMatrix (row_dim, col_dim);
+
+    size_t id1, id2;                       // record current location
+    size_t id1_max, id2_max;
+    // loop for adding on each line
+    for (size_t i = 0; i < row_dim; i ++)
+    {
+        id1 = row_ptr[i];
+        id2 = adder->row_ptr[i];
+        id1_max = row_ptr[i+1];
+        id2_max = adder->row_ptr[i+1];
+        while (id1 < id1_max || id2 < id2_max)
+        {
+            if (col_list[id1] == adder->col_list[id2])
+            {
+                sum->Add_entry (i, col_list[id1], value_list[id1] + adder->value_list[id2]);
+                id1 ++;
+                id2 ++;
+            }
+            else if (col_list[id1] < adder->col_list[id2])
+            {
+                sum->Add_entry (i, col_list[id1], value_list[id1]);
+                id1 ++;
+            }
+            else
+            {
+                sum->Add_entry (i, adder->col_list[id2], adder->value_list[id2]);
+                id2 ++;
+            }
+        }
+    }
+    sum->Complete_row_ptr ();
+    sum->Trim ();
+    return sum;
+    //return (SparseMatrix *) 0;
 }
 
 SparseMatrix * SparseMatrix::Matrix_substract (SparseMatrix * suber)
 {
-    // TODO
+#ifdef SPARSEMATRIX_DEBUG
     printf ("Matrix_substract\n");
+#endif
     assert (row_dim == suber->row_dim);
     assert (col_dim == suber->col_dim);
-    return (SparseMatrix *) 0;
+    SparseMatrix * adder = suber->Matrix_scalar_multiple (-1.0);
+    SparseMatrix * minus = this->Matrix_add (adder);
+    delete adder;
+    return minus;
+    //return (SparseMatrix *) 0;
 }
 
 SparseMatrix * SparseMatrix::Matrix_multiple (SparseMatrix * multier)
 {
     // TODO
-    //printf ("Matrix_multiple\n");
+#ifdef SPARSEMATRIX_DEBUG
+    printf ("Matrix_multiple\n");
+#endif
     assert (col_dim == multier->row_dim);
-    return (SparseMatrix *) 0;
+    SparseMatrix * mult = new SparseMatrix (row_dim, multier->col_dim);
+    SparseMatrix * multierT = multier->Matrix_transpose ();
+    _ValueType dot_product = 0.0;
+    size_t id1, id2;
+    size_t id1_max, id2_max;
+    for (size_t i = 0; i < row_dim; i ++)
+    {
+        for (size_t j = 0; j < multier->col_dim; j ++)
+        {
+            id1 = row_ptr[i];
+            id1_max = row_ptr[i+1];
+            id2 = multierT->row_ptr[j];
+            id2_max = multierT->row_ptr[j+1];
+            dot_product = 0.0;
+            while (id1 < id1_max && id2 < id2_max)
+            {
+                if (col_list[id1] == multierT->col_list[id2])
+                {
+                    dot_product += value_list[id1] * multierT->value_list[id2];
+                    id1 ++;
+                    id2 ++;
+                }
+                else if (col_list[id1] < multierT->col_list[id2])
+                    id1 ++;
+                else
+                    id2 ++;
+            }
+            // if dot product of <row i of this> and <row j of multierT> is not zero, use Add_entry
+            if (dot_product != 0.0)
+                mult->Add_entry (i, j, dot_product);
+        }
+    }
+    mult->Complete_row_ptr ();
+    mult->Trim ();
+    delete multierT;
+    return mult;
+    //return (SparseMatrix *) 0;
 }
 
 
 // matrix vector multiplication
-void SparseMatrix::Matrix_vector_multiple (double * output, int osize, double * input, int isize)
+void SparseMatrix::Matrix_vector_multiple (_ValueType * output, size_t osize, _ValueType * input, size_t isize)
 {
-    //printf ("Matrix_vector_multiple\n");
+#ifdef SPARSEMATRIX_DEBUG
+    printf ("Matrix_vector_multiple\n");
+#endif
     assert (col_dim == isize);
     assert (row_dim == osize);
-    for (int i = 0; i < col_dim; i ++)
+    for (size_t i = 0; i < row_dim; i ++)
         output[i] = 0.0;
-    for (int i = 0; i < row_dim; i ++)
+    for (size_t i = 0; i < row_dim; i ++)
     {
-        for (int j = row_ptr[i]; j < row_ptr[i+1]; j ++)
+        for (size_t j = row_ptr[i]; j < row_ptr[i+1]; j ++)
         {
             output[i] += input[col_list[j]] * value_list[j];
         }
     }
 }
 
-void SparseMatrix::print()
+void SparseMatrix::Print()
 {
-    printf ("current_size: %d\n", current_size);
-    //for (int i = 0; i < current_size; i ++)
-    //    printf ("%6d\t%6d\t\t%3.6f\n", row_list[i], col_list[i], value_list[i]);
-    for (int i = 0; i < row_dim + 1; i ++)
-        printf ("row_ptr[%6d] = %6d\n", i, row_ptr[i]);
+    printf ("current_size: %ld\n", current_size);
+    for (size_t i = 0; i < current_size; i ++)
+        printf ("%6ld\t%6ld\t\t%3.6f\n", row_list[i], col_list[i], value_list[i]);
+    for (size_t i = 0; i < row_dim + 1; i ++)
+        printf ("row_ptr[%6ld] = %6ld\n", i, row_ptr[i]);
 }

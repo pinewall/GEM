@@ -1,6 +1,7 @@
 Gradient Enhanced reMap ==> GEM
 
 Try to Enhance Remap netCDF file through Gradients
+Goal Usage:
 ./gem -r remapfile -m gradient-algorithm -o enchenced-remapfile
 
 More Design Goals:
@@ -18,7 +19,38 @@ More Design Goals:
 4. innovation:
     seperate remap algorithm and gradient algorithm: suit for all remap platform
 
+
 ===========How To Use==========
+
+*****************************************************************************************
+Update Log 2011-09-11
+*****************************************************************************************
+
+====Basic Usage====
+1.1 You could generate order2 remap matrix in the following way.
+$ make gem
+$ ./gem order1_remap_ncfile(input) order1_remap_ncxml(input) order2_remap_ncfile(output)
+
+1.2 You could then test accuracy gains as follows.
+$ make remap
+$ ./remap source-field-ncfile(input) remap-matrix-ncfile(input) destination-field-ncfile
+
+====Test Usage====
+On the other hand, your could test accracy with generating order2 remap matrix
+$ make unit_test
+
+2.1 For analytical_fucntion, such as Y2_2, Y16_32
+$ ./unit_test order1_remap_ncfile(input) order1_remap_ncxml(input) test_function_name
+
+2.2 For data given by users
+$ ./unit_test order1_remap_ncfile(input) order1_remap_ncxml(input) realdata src_field_ncfile(input) src_field_xmlfile(input) dst_field_ncfile(input) dst_field_xmlfile(input)
+
+Errors will print in the screen or redirect to files.
+*****************************************************************************************
+
+*****************************************************************************************
+Original Log
+========================================================================================
 run make lib
 run make unit_test
 ./unit_test remap_ncfile test_function > script/value
@@ -33,3 +65,4 @@ cd script
     ./fetch.sh
          
 Note: remap_ncfile should be A_B.nc and test_function can be coslat_coslon, cosbell, Y2_2, and Y16_32
+========================================================================================

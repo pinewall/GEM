@@ -1,13 +1,14 @@
 #include "IO_netCDF.h"
 #include "gradient.h"
+#include "types.h"
 #include "field.h"
 #include "assert.h"
 
 int main(int argc, char ** argv)
 {
-    if (argc < 3)
+    if (argc < 4)
     {
-        printf ("Usage: ./unit_test remap_ncfile_path test_function_name\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
+        printf ("Usage: ./unit_test remap_ncfile_path xml_path test_function_name\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
         return -1;
     }
     // print header information for NCL
@@ -29,9 +30,9 @@ int main(int argc, char ** argv)
     printf ("%s\n", src_grid_name);
     printf ("%s\n", dst_grid_name);
 
-    printf ("%s\n", argv[2]);
+    //printf ("%s\n", argv[2]);
 
-    IO_netCDF * cdf = new IO_netCDF ("configure");
+    IO_netCDF * cdf = new IO_netCDF (argv[2]);
     //printf("after configure\n");
     //cdf->Print_dims();
     //cdf->Print_vars();
@@ -41,146 +42,178 @@ int main(int argc, char ** argv)
     cdf->Read_file (argv[1]);
     //cdf->Write_file ("output.nc");
 
-    int src_grid_size = cdf->Get_dim_by_name ("src_grid_size")->data;
-    int dst_grid_size = cdf->Get_dim_by_name ("dst_grid_size")->data;
-    int num_links = cdf->Get_dim_by_name ("num_links")->data;
+    size_t src_grid_size = cdf->Get_dim_by_gname ("src_grid_size")->data;
+    size_t dst_grid_size = cdf->Get_dim_by_gname ("dst_grid_size")->data;
+    Dim dim_num_links = cdf->Get_dim_by_gname ("num_links");
+    Dim dim_num_wgts = cdf->Get_dim_by_gname ("num_wgts");
+    size_t num_links = dim_num_links->data;
+    size_t num_wgts = dim_num_wgts->data;
+	printf("num_links: %ld\n", num_links);
+	printf("num_wgts: %ld\n", num_wgts);
 
-    Var center_lat = cdf->Get_var_by_name ("src_grid_center_lat");
-    Var center_lon = cdf->Get_var_by_name ("src_grid_center_lon");
-    Var grid_dims = cdf->Get_var_by_name ("src_grid_dims");
-    Var src_address = cdf->Get_var_by_name ("src_address");
-    Var dst_address = cdf->Get_var_by_name ("dst_address");
-    Var remap_matrix = cdf->Get_var_by_name ("remap_matrix");
-    assert (center_lat != (Var) 0);
-    assert (center_lon != (Var) 0);
+    Var src_center_lat = cdf->Get_var_by_gname ("src_grid_center_lat");
+    Var src_center_lon = cdf->Get_var_by_gname ("src_grid_center_lon");
+    Var dst_center_lat = cdf->Get_var_by_gname ("dst_grid_center_lat");
+    Var dst_center_lon = cdf->Get_var_by_gname ("dst_grid_center_lon");
+    Var dst_imasks     = cdf->Get_var_by_gname ("dst_grid_imask");
+    Var src_grid_dims = cdf->Get_var_by_gname ("src_grid_dims");
+    Var src_address = cdf->Get_var_by_gname ("src_address");
+    Var dst_address = cdf->Get_var_by_gname ("dst_address");
+    Var remap_matrix = cdf->Get_var_by_gname ("remap_matrix");
+    assert (src_center_lat != (Var) 0);
+    assert (src_center_lon != (Var) 0);
+    assert (dst_center_lat != (Var) 0);
+    assert (dst_center_lon != (Var) 0);
     assert (src_address != (Var) 0);
     assert (dst_address != (Var) 0);
-    int lon_dim = ((int *) grid_dims->data)[0];
-    int lat_dim = ((int *) grid_dims->data)[1];
-    //printf ("lat_dim = %d\n", lat_dim);
-    //printf ("lon_dim = %d\n", lon_dim);
+    assert (remap_matrix != (Var) 0);
 
-    // default units of center_lat/lon_cvalue is degrees; corresponding to USE_RADIANS
-    double * center_lat_value = (double *) center_lat->data;
-    double * center_lon_value = (double *) center_lon->data;
-    double * center_lat_cvalue = new double [src_grid_size];
-    double * center_lon_cvalue = new double [src_grid_size];
-    double rate = 1.0;
-    if (strcmp (center_lat->prep_list[0]->info, "radians") == 0)
-        rate = 180 / 3.14159265359;
+    int src_lon_dim = ((int *) src_grid_dims->data)[0];
+    int src_lat_dim = ((int *) src_grid_dims->data)[1];
+    printf ("src_lat_dim = %d\n", src_lat_dim);
+    printf ("src_lon_dim = %d\n", src_lon_dim);
+
+    double * dp_src_center_lat = (double *) src_center_lat->data;
+    double * dp_src_center_lon = (double *) src_center_lon->data;
+    double * dp_dst_center_lat = (double *) dst_center_lat->data;
+    double * dp_dst_center_lon = (double *) dst_center_lon->data;
+    int    * ip_dst_imasks     = (int *) dst_imasks->data;
+    
+    // load src|dst _center_ lat|lon
+    _ValueType * d_src_center_lat = new _ValueType [src_grid_size];
+    _ValueType * d_src_center_lon = new _ValueType [src_grid_size];
+    _ValueType * d_dst_center_lat = new _ValueType [dst_grid_size];
+    _ValueType * d_dst_center_lon = new _ValueType [dst_grid_size];
+    int * i_dst_imasks = new int [dst_grid_size];
+    assert (d_src_center_lat != (_ValueType *) 0);
+    assert (d_src_center_lon != (_ValueType *) 0);
+    assert (d_dst_center_lat != (_ValueType *) 0);
+    assert (d_dst_center_lon != (_ValueType *) 0);
+    assert (i_dst_imasks != (int *) 0);
     for (int i = 0; i < src_grid_size; i ++)
     {
-        center_lat_cvalue[i] = center_lat_value[i] * rate;
-        center_lon_cvalue[i] = center_lon_value[i] * rate;
+        d_src_center_lat[i] = (_ValueType) dp_src_center_lat[i];
+        d_src_center_lon[i] = (_ValueType) dp_src_center_lon[i];
     }
-    // default units of dst_clat/lon is radians; corresponding to USE_RADIANS
-    double * dst_lat = (double *) cdf->Get_var_by_name ("dst_grid_center_lat")->data;
-    double * dst_lon = (double *) cdf->Get_var_by_name ("dst_grid_center_lon")->data;
-    double * dst_clat = new double [dst_grid_size];
-    double * dst_clon = new double [dst_grid_size];
-    int * dst_mask = (int *) cdf->Get_var_by_name ("dst_grid_imask")->data;
-    rate = 1.0;
-#ifdef USE_RADIANS
-    if (strcmp (cdf->Get_var_by_name ("dst_grid_center_lat")->prep_list[0]->info, "degrees") == 0)
-        rate = 3.14159265359 / 180;
-#endif
-#ifdef USE_DEGREES
-    if (strcmp (cdf->Get_var_by_name ("dst_grid_center_lat")->prep_list[0]->info, "radians") == 0)
-        rate = 180 / 3.14159265359;
-#endif
     for (int i = 0; i < dst_grid_size; i ++)
     {
-        dst_clat[i] = dst_lat[i] * rate;
-        dst_clon[i] = dst_lon[i] * rate;
+        d_dst_center_lat[i] = (_ValueType) dp_dst_center_lat[i];
+        d_dst_center_lon[i] = (_ValueType) dp_dst_center_lon[i];
+        i_dst_imasks[i]     = (int)        ip_dst_imasks[i];
     }
-    int * src_address_value = (int *) src_address->data;
-    int * dst_address_value = (int *) dst_address->data;
-    
-    assert (center_lat_value != (double *) 0);
-    assert (center_lon_value != (double *) 0);
-    assert (src_address_value != (int *) 0);
-    assert (dst_address_value != (int *) 0);
+	if (strcmp (src_center_lat->prep_list[0]->info, "degrees") == 0)
+	{
+		for (int i = 0; i < src_grid_size; i ++)
+		{
+            d_src_center_lat[i] = d_src_center_lat[i] * deg2rad;
+            d_src_center_lon[i] = d_src_center_lon[i] * deg2rad;
+		}
+	}
+    if (strcmp (dst_center_lat->prep_list[0]->info, "degrees") == 0)
+    {
+        for (int i = 0; i < dst_grid_size; i ++)
+        {
+            d_dst_center_lat[i] = d_dst_center_lat[i] * deg2rad;
+            d_dst_center_lon[i] = d_dst_center_lon[i] * deg2rad;
+        }
+    }
 
-    int * src_address_cvalue = new int [num_links];
-    int * dst_address_cvalue = new int [num_links];
+    // load remap matrix
+    int * ip_src_address = (int *) src_address->data;
+	int * ip_dst_address = (int *) dst_address->data;
+    double * dp_remap_matrix = (double *) remap_matrix->data;
+    int * i_src_address = new int [num_links];
+    int * i_dst_address = new int [num_links];
+    _ValueType * d_w1       = new _ValueType [num_links];
+    _ValueType * d_w2lat    = new _ValueType [num_links];
+    _ValueType * d_w2lon    = new _ValueType [num_links];
+    assert (i_src_address != (int *) 0);
+    assert (i_dst_address != (int *) 0);
+    assert (d_w1 != (_ValueType *) 0);
+    assert (d_w2lat != (_ValueType *) 0);
+    assert (d_w2lon != (_ValueType *) 0);
+    int wid = 0;
     for (int i = 0; i < num_links; i ++)
     {
-        src_address_cvalue[i] = src_address_value[i] - 1;
-        dst_address_cvalue[i] = dst_address_value[i] - 1;
+        i_src_address[i] = ip_src_address[i] - 1;
+        i_dst_address[i] = ip_dst_address[i] - 1;
+        d_w1[i] = (_ValueType) dp_remap_matrix[wid++];
+        d_w2lat[i] = (_ValueType) dp_remap_matrix[wid++];
+        d_w2lon[i] = (_ValueType) dp_remap_matrix[wid++];
+        //printf("%d %d: %lf %lf %lf\n", i_src_address[i], i_dst_address[i],  d_w1[i], d_w2lat[i], d_w2lon[i]);
+        //std::cout << i_src_address[i] << "\t" << i_dst_address[i] << "\t" << d_w1[i] << "\t" << d_w2lat[i] << "\t" << d_w2lon[i] << std::endl;
     }
 
-    //printf ("src_address[0] = %d\n", src_address_value[0]);
-    //printf ("src_grid_center_lat[0] = %f\n", ((double *)center_lat->data)[0]);
-
-    Dim size = cdf->Get_dim_by_ID ((center_lat->dim_list)[0]);
-    //Dim corners = cdf->Get_dim_by_ID ((center_lat->dim_list)[1]);
-    
-    //printf("size: %d\n", size->data);
-    //printf("corners: %d\n", corners->data);
-
-    //return 0;
-    /*
-    for (int i = 0; i < size->data; i ++)
-    {
-//        for (int j = 0; j < corners->data; j ++)
-        printf ("%3.6f  ", center_lat_value[i]);
-        if (i % 4 == 3)
-            printf ("\n");
-    }
-    printf ("\n");
-    */
-
-    grad_latlon * grad = new grad_latlon (lat_dim, lon_dim, center_lat_cvalue, center_lon_cvalue);
+    grad_latlon * grad = new grad_latlon ((int)src_lat_dim, (int)src_lon_dim, d_src_center_lat, d_src_center_lon);
+    delete [] d_src_center_lat;
+    delete [] d_src_center_lon;
     grad->Calculate_grad_latlon_matrix();
 
     // test gradient method
     //grad->Test_grad_latlon (&function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon);
 
-    //grad->Get_grad_lat_matrix ()->print ();
-    //grad->Get_grad_lon_matrix ()->print ();
-    //SparseMatrix * transposed = grad->Get_grad_lon_matrix ()->Matrix_transpose();
-    //transposed->print ();
-    //return 0;
-    double * w = (double *) (cdf->Get_var_by_name ("remap_matrix")->data);
-    double * w1 = new double [num_links];
-    double * w2lat = new double [num_links];
-    double * w2lon = new double [num_links];
-    int wid = 0;
-    for (int i = 0; i < num_links; i ++)
-    {
-        w1[i] = w[wid++];
-        w2lat[i] = w[wid++];
-        w2lon[i] = w[wid++];
-    }
-#if 0
-    for (int i = 0; i < num_links; i ++)
-    {
-        printf ("%6d\t%6d\t\t\t%3.6f\n", dst_address_value[i], src_address_value[i], w1[i]);
-    }
+#ifdef STL_SPARSEMATRIX_VERSION
+    SpMat * m1      = new SpMat((int)dst_grid_size, (int)src_grid_size, i_dst_address, i_src_address, d_w1, num_links);
+    SpMat * m2lat   = new SpMat((int)dst_grid_size, (int)src_grid_size, i_dst_address, i_src_address, d_w2lat, num_links);
+    SpMat * m2lon   = new SpMat((int)dst_grid_size, (int)src_grid_size, i_dst_address, i_src_address, d_w2lon, num_links);
+#else
+    SpMat * m1      = new SpMat((int)dst_grid_size, (int)src_grid_size, num_links, i_dst_address, i_src_address, d_w1);
+    SpMat * m2lat   = new SpMat((int)dst_grid_size, (int)src_grid_size, num_links, i_dst_address, i_src_address, d_w2lat);
+    SpMat * m2lon   = new SpMat((int)dst_grid_size, (int)src_grid_size, num_links, i_dst_address, i_src_address, d_w2lon);
 #endif
-    SparseMatrix * m1 = new SparseMatrix(dst_grid_size, src_grid_size, num_links, dst_address_cvalue, src_address_cvalue, w1);
-    SparseMatrix * m2lat = new SparseMatrix(dst_grid_size, src_grid_size, num_links, dst_address_cvalue, src_address_cvalue, w2lat);
-    SparseMatrix * m2lon = new SparseMatrix(dst_grid_size, src_grid_size, num_links, dst_address_cvalue, src_address_cvalue, w2lon);
-    delete w1;
-    delete w2lat;
-    delete w2lon;
-    delete src_address_cvalue;
-    delete dst_address_cvalue;
-    if (strcmp (argv[2], "unit") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, dst_clat, dst_clon, dst_mask);
-    else if (strcmp (argv[2], "coslat_coslon") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon, dst_clat, dst_clon, dst_mask);
-    else if (strcmp (argv[2], "cosbell") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, dst_clat, dst_clon, dst_mask);
-    else if (strcmp (argv[2], "Y2_2") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, dst_clat, dst_clon, dst_mask);
-    else if (strcmp (argv[2], "Y16_32") == 0)
-        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, dst_clat, dst_clon, dst_mask);
+    delete [] d_w1;
+    delete [] d_w2lat;
+    delete [] d_w2lon;
+    delete [] i_src_address;
+    delete [] i_dst_address;
+    int dst_nlon = ((int *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[0];
+    int dst_nlat = ((int *) cdf->Get_var_by_gname ("dst_grid_dims")->data)[1];
+
+    if (strcmp (argv[3], "unit") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_unit, &partial_lat_function_unit, &partial_lon_function_unit, d_dst_center_lat, d_dst_center_lon, i_dst_imasks);
+    else if (strcmp (argv[3], "coslat_coslon") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_coslat_coslon, &partial_lat_function_coslat_coslon, &partial_lon_function_coslat_coslon, d_dst_center_lat, d_dst_center_lon, i_dst_imasks);
+    else if (strcmp (argv[3], "cosbell") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_cosbell, &partial_lat_function_cosbell, &partial_lon_function_cosbell, d_dst_center_lat, d_dst_center_lon, i_dst_imasks);
+    else if (strcmp (argv[3], "Y2_2") == 0)
+    {
+        grad->Test_grad_latlon (function_spherical_harmonic_2_2, partial_lat_function_spherical_harmonic_2_2, partial_lon_function_spherical_harmonic_2_2);
+        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, d_dst_center_lat, d_dst_center_lon, i_dst_imasks);
+    }
+    else if (strcmp (argv[3], "aaY2_2") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_aa_spherical_harmonic_2_2, &partial_lat_function_spherical_harmonic_2_2, &partial_lon_function_spherical_harmonic_2_2, d_dst_center_lat, d_dst_center_lon, i_dst_imasks, dst_nlat, dst_nlon);
+    else if (strcmp (argv[3], "Y16_32") == 0)
+        grad->Test_final_results (m1, m2lat, m2lon, &function_spherical_harmonic_16_32, &partial_lat_function_spherical_harmonic_16_32, &partial_lon_function_spherical_harmonic_16_32, d_dst_center_lat, d_dst_center_lon, i_dst_imasks);
+    else if (strcmp (argv[3], "realdata") == 0)
+    {
+        if (argc < 8)
+        {
+            printf ("readdata usage: ./unit_test remap.nc remap.xml realdata src-ncfile src-xmlfile dst-ncfile dst-xmlfile\n");
+            return -2;
+        }
+        else
+        {
+            size_t src_grid_size, dst_grid_size;
+            _ValueType * src_field_data, * dst_field_data;
+            IO_netCDF * cdf_src_field = new IO_netCDF (argv[5]);
+            cdf_src_field->Read_file (argv[4]);
+            src_grid_size = cdf_src_field->Get_dim_by_gname ("grid_size")->data;
+            src_field_data = (_ValueType *) cdf_src_field->Get_var_by_gname ("physical_variable")->data;
+            
+            IO_netCDF * cdf_dst_field = new IO_netCDF (argv[7]);
+            cdf_dst_field->Read_file (argv[6]);
+            dst_grid_size = cdf_dst_field->Get_dim_by_gname ("grid_size")->data;
+            dst_field_data = (_ValueType *) cdf_dst_field->Get_var_by_gname ("physical_variable")->data;
+            
+            grad->Test_final_results (m1, m2lat, m2lon, src_field_data, src_grid_size, dst_field_data, dst_grid_size, d_dst_center_lat, d_dst_center_lon, i_dst_imasks);
+            delete cdf_src_field;
+            delete cdf_dst_field;
+        }
+    }
     else
-        printf ("Un-supported test function!\nUse the following ones:\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n");
-    delete dst_lat;
-    delete dst_lon;
-    return 0;
-    SparseMatrix * final = grad->Calculate_final_matrix (m1, m2lat, m2lon);
+        printf ("Un-supported test function!\nUse the following ones:\n\tunit\n\tcoslat_coslon\n\tcosbell\n\tY2_2\n\tY16_32\n\trealdata file1 file2\n");
+    delete [] d_dst_center_lat;
+    delete [] d_dst_center_lon;
+    delete [] i_dst_imasks;
     return 0;
 }
